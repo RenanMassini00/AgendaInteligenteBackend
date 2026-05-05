@@ -1,0 +1,56 @@
+@baseUrl = http://localhost:5080
+@userId = 1
+
+### Health
+GET {{baseUrl}}/
+
+### Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "renan@email.com",
+  "password": "123456"
+}
+
+### Dashboard
+GET {{baseUrl}}/api/dashboard/summary?userId={{userId}}
+
+### Clients
+GET {{baseUrl}}/api/clients?userId={{userId}}
+
+### Create Client
+POST {{baseUrl}}/api/clients
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "name": "Cliente Teste",
+  "email": "cliente@email.com",
+  "phone": "11999998888",
+  "birthDate": null,
+  "notes": "Criado via HTTP file"
+}
+
+### Services
+GET {{baseUrl}}/api/services?userId={{userId}}
+
+### Availability
+GET {{baseUrl}}/api/availability?userId={{userId}}
+
+### Appointments
+GET {{baseUrl}}/api/appointments?userId={{userId}}
+
+### Create Appointment
+POST {{baseUrl}}/api/appointments
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "clientId": 1,
+  "serviceId": 1,
+  "date": "2026-05-10",
+  "time": "16:00",
+  "status": "scheduled",
+  "notes": "Agendamento criado via HTTP file"
+}
