@@ -106,3 +106,4 @@ C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\D
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\Scheduler.Api.pdb
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\Scheduler.Api.genruntimeconfig.cache
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\ref\Scheduler.Api.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\Scheduler.Api.sourcelink.json
