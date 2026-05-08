@@ -3,6 +3,42 @@
   "WorkspaceRootPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\adminuserscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\adminuserscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\entities\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\dtos\\admindtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\dtos\\admindtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\adminbillingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\adminbillingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\admincompaniescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\admincompaniescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\admindashboardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\admindashboardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\entities\\billingrecord.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\entities\\billingrecord.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\clientportalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\clientportalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\appointmentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\appointmentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -13,14 +49,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\publicbookingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\publicbookingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\clientscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\clientportalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\clientportalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
@@ -37,10 +65,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\controllers\\availabilitycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\controllers\\availabilitycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|solutionrelative:scheduler.api\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{0D4C8C8D-6B63-4C6E-A04F-DAE6F72D17B1}|Scheduler.Api\\Scheduler.Api.csproj|c:\\users\\massini913471\\source\\repos\\agendainteligentebackend\\scheduler.api\\entities\\weeklyavailability.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -62,24 +86,102 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "AppointmentDtos.cs",
-              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\DTOs\\AppointmentDtos.cs",
-              "RelativeDocumentMoniker": "Scheduler.Api\\DTOs\\AppointmentDtos.cs",
-              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\DTOs\\AppointmentDtos.cs",
-              "RelativeToolTip": "Scheduler.Api\\DTOs\\AppointmentDtos.cs",
-              "ViewState": "AgIAABcAAAAAAAAAAAAQwCkAAAACAAAAAAAAAA==",
+              "Title": "User.cs",
+              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Entities\\User.cs",
+              "RelativeDocumentMoniker": "Scheduler.Api\\Entities\\User.cs",
+              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Entities\\User.cs",
+              "RelativeToolTip": "Scheduler.Api\\Entities\\User.cs",
+              "ViewState": "AgIAACYAAAAAAAAAAAAswDwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-05T17:18:53.376Z",
+              "WhenOpened": "2026-05-08T01:17:10.595Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AdminUsersController.cs",
+              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AdminUsersController.cs",
+              "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\AdminUsersController.cs",
+              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AdminUsersController.cs",
+              "RelativeToolTip": "Scheduler.Api\\Controllers\\AdminUsersController.cs",
+              "ViewState": "AgIAAEoAAAAAAAAAAAAgwF0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-08T01:09:39.334Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AdminDtos.cs",
+              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\DTOs\\AdminDtos.cs",
+              "RelativeDocumentMoniker": "Scheduler.Api\\DTOs\\AdminDtos.cs",
+              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\DTOs\\AdminDtos.cs",
+              "RelativeToolTip": "Scheduler.Api\\DTOs\\AdminDtos.cs",
+              "ViewState": "AgIAAEQAAAAAAAAAAAAAwFEAAAACAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-08T01:08:58.055Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "AdminCompaniesController.cs",
+              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AdminCompaniesController.cs",
+              "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\AdminCompaniesController.cs",
+              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AdminCompaniesController.cs",
+              "RelativeToolTip": "Scheduler.Api\\Controllers\\AdminCompaniesController.cs",
+              "ViewState": "AgIAAGIAAAAAAAAAAAAAAH0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-06T21:35:11.862Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
+              "Title": "AdminBillingController.cs",
+              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AdminBillingController.cs",
+              "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\AdminBillingController.cs",
+              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AdminBillingController.cs",
+              "RelativeToolTip": "Scheduler.Api\\Controllers\\AdminBillingController.cs",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAADYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-06T21:35:32.107Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AdminDashboardController.cs",
+              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AdminDashboardController.cs",
+              "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\AdminDashboardController.cs",
+              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AdminDashboardController.cs",
+              "RelativeToolTip": "Scheduler.Api\\Controllers\\AdminDashboardController.cs",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAAAFgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-06T21:34:53.361Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "BillingRecord.cs",
+              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Entities\\BillingRecord.cs",
+              "RelativeDocumentMoniker": "Scheduler.Api\\Entities\\BillingRecord.cs",
+              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Entities\\BillingRecord.cs",
+              "RelativeToolTip": "Scheduler.Api\\Entities\\BillingRecord.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-06T21:31:45.317Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
               "Title": "ClientsController.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\ClientsController.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\ClientsController.cs",
@@ -92,20 +194,32 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 9,
               "Title": "AppointmentsController.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AppointmentsController.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\AppointmentsController.cs",
               "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AppointmentsController.cs",
               "RelativeToolTip": "Scheduler.Api\\Controllers\\AppointmentsController.cs",
-              "ViewState": "AgIAAIIAAAAAAAAAAADwv44AAABiAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC8BAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-05T17:08:34.894Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 10,
+              "Title": "AppointmentDtos.cs",
+              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\DTOs\\AppointmentDtos.cs",
+              "RelativeDocumentMoniker": "Scheduler.Api\\DTOs\\AppointmentDtos.cs",
+              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\DTOs\\AppointmentDtos.cs",
+              "RelativeToolTip": "Scheduler.Api\\DTOs\\AppointmentDtos.cs",
+              "ViewState": "AgIAABcAAAAAAAAAAAAQwCkAAAACAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-05T17:18:53.376Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "ClientPortalController.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\ClientPortalController.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\ClientPortalController.cs",
@@ -118,7 +232,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 11,
               "Title": "PublicBookingController.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\PublicBookingController.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\PublicBookingController.cs",
@@ -126,12 +240,11 @@
               "RelativeToolTip": "Scheduler.Api\\Controllers\\PublicBookingController.cs",
               "ViewState": "AgIAACcBAAAAAAAAAAAYwEABAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-05T17:07:21.35Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-05T17:07:21.35Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 13,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Program.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\Program.cs",
@@ -139,12 +252,11 @@
               "RelativeToolTip": "Scheduler.Api\\Program.cs",
               "ViewState": "AgIAABsAAAAAAAAAAAAYwCkAAAADAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-05T12:39:36.44Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-05T12:39:36.44Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 14,
               "Title": "PublicBookingDtos.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\DTOs\\PublicBookingDtos.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\DTOs\\PublicBookingDtos.cs",
@@ -152,12 +264,11 @@
               "RelativeToolTip": "Scheduler.Api\\DTOs\\PublicBookingDtos.cs",
               "ViewState": "AgIAAAIAAAAAAAAAAAAAABgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-04T19:54:27.597Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-04T19:54:27.597Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 15,
               "Title": "AvailabilityController.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\AvailabilityController.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\AvailabilityController.cs",
@@ -169,19 +280,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "AppDbContext.cs",
-              "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Data\\AppDbContext.cs",
-              "RelativeDocumentMoniker": "Scheduler.Api\\Data\\AppDbContext.cs",
-              "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Data\\AppDbContext.cs",
-              "RelativeToolTip": "Scheduler.Api\\Data\\AppDbContext.cs",
-              "ViewState": "AgIAAEYAAAAAAAAAAAAwwIoAAAALAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-04T14:04:03.104Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 17,
               "Title": "AvailabilityDtos.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\DTOs\\AvailabilityDtos.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\DTOs\\AvailabilityDtos.cs",
@@ -193,7 +292,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 16,
               "Title": "WeeklyAvailability.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Entities\\WeeklyAvailability.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\Entities\\WeeklyAvailability.cs",
@@ -205,7 +304,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 18,
               "Title": "ProfileController.cs",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Controllers\\ProfileController.cs",
               "RelativeDocumentMoniker": "Scheduler.Api\\Controllers\\ProfileController.cs",
@@ -217,7 +316,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 12,
               "Title": "appsettings.Development.json",
               "DocumentMoniker": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\appsettings.Development.json",
               "RelativeDocumentMoniker": "Scheduler.Api\\appsettings.Development.json",
@@ -225,8 +324,7 @@
               "RelativeToolTip": "Scheduler.Api\\appsettings.Development.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAADAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-04-30T20:53:56.851Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-30T20:53:56.851Z"
             }
           ]
         }

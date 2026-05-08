@@ -51,6 +51,8 @@ public class User
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
+    public ulong? CompanyId { get; set; }
+    public Company? Company { get; set; }
 
     public ICollection<Client> Clients { get; set; } = [];
     public ICollection<Service> Services { get; set; } = [];

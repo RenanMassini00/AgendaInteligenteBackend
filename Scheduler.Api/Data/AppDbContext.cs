@@ -18,6 +18,8 @@ public class AppDbContext : DbContext
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<AppointmentStatusHistory> AppointmentStatusHistory => Set<AppointmentStatusHistory>();
     public DbSet<AvailabilityDate> AvailabilityDates => Set<AvailabilityDate>();
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<BillingRecord> BillingRecords => Set<BillingRecord>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -136,6 +138,60 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<Company>(entity =>
+        {
+            entity.ToTable("companies");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id).HasColumnName("id");
+            entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(150).IsRequired();
+            entity.Property(x => x.OwnerName).HasColumnName("owner_name").HasMaxLength(150).IsRequired();
+            entity.Property(x => x.Email).HasColumnName("email").HasMaxLength(150).IsRequired();
+            entity.Property(x => x.Phone).HasColumnName("phone").HasMaxLength(20);
+            entity.Property(x => x.Document).HasColumnName("document").HasMaxLength(30);
+            entity.Property(x => x.LogoUrl).HasColumnName("logo_url").HasMaxLength(500);
+            entity.Property(x => x.PublicSlug).HasColumnName("public_slug").HasMaxLength(120);
+            entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.Property(x => x.MonthlyFee).HasColumnName("monthly_fee").HasColumnType("decimal(10,2)");
+            entity.Property(x => x.Notes).HasColumnName("notes");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at");
+            entity.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<BillingRecord>(entity =>
+        {
+            entity.ToTable("billing_records");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id).HasColumnName("id");
+            entity.Property(x => x.CompanyId).HasColumnName("company_id");
+            entity.Property(x => x.ReferenceMonth).HasColumnName("reference_month").HasMaxLength(7).IsRequired();
+            entity.Property(x => x.Amount).HasColumnName("amount").HasColumnType("decimal(10,2)");
+            entity.Property(x => x.DueDate).HasColumnName("due_date");
+            entity.Property(x => x.PaidAt).HasColumnName("paid_at");
+            entity.Property(x => x.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.Property(x => x.PaymentMethod).HasColumnName("payment_method").HasMaxLength(50);
+            entity.Property(x => x.Notes).HasColumnName("notes");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at");
+            entity.Property(x => x.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasOne(x => x.Company)
+                .WithMany(x => x.BillingRecords)
+                .HasForeignKey(x => x.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(x => x.CompanyId).HasColumnName("company_id");
+
+            entity.HasOne(x => x.Company)
+                .WithMany(x => x.Users)
+                .HasForeignKey(x => x.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
