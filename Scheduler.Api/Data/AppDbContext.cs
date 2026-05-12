@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<AvailabilityDate> AvailabilityDates => Set<AvailabilityDate>();
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<BillingRecord> BillingRecords => Set<BillingRecord>();
+    public DbSet<Product> Products => Set<Product>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
