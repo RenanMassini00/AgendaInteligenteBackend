@@ -67,7 +67,9 @@ public record AdminUserResponse(
     string Status,
     string CreatedAt,
     string? PublicSlug,
-    string? Timezone
+    string? Timezone,
+    bool HasAppointmentsModule,
+    bool HasCatalogModule
 );
 
 public record AdminUserCreateRequest(
@@ -78,7 +80,9 @@ public record AdminUserCreateRequest(
     string? Specialty,
     string Password,
     string? PublicSlug,
-    string? Timezone
+    string? Timezone,
+    bool HasAppointmentsModule,
+    bool HasCatalogModule
 );
 
 public record AdminUserUpdateRequest(
@@ -87,8 +91,9 @@ public record AdminUserUpdateRequest(
     string Email,
     string? Phone,
     string? Specialty,
-    string? Password,
-    string? PublicSlug,
     string? Timezone,
+    string? PublicSlug,
+    bool HasAppointmentsModule,
+    bool HasCatalogModule,
     bool IsActive
 );

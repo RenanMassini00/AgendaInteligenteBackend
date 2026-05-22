@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
+using Scheduler.Api.Entities;
 
 namespace Scheduler.Api.Controllers;
 
@@ -39,31 +40,46 @@ public class PublicCatalogController : ControllerBase
             .Where(x =>
                 x.UserId == user.Id &&
                 x.IsActive &&
-                !x.IsSold &&
                 x.StockQuantity > 0)
-            .OrderBy(x => x.Name)
+            .OrderByDescending(x => x.IsFeatured)
+            .ThenByDescending(x => x.CreatedAt)
+            .ThenBy(x => x.Name)
             .ToListAsync();
 
-        var phone = user.Phone ?? "";
-        var normalizedPhone = new string(phone.Where(char.IsDigit).ToArray());
+        var normalizedPhone = new string((user.Phone ?? string.Empty).Where(char.IsDigit).ToArray());
 
         var productResponses = products.Select(product =>
         {
-            var message = string.IsNullOrWhiteSpace(product.WhatsAppMessage)
-                ? $"Olá! Tenho interesse no produto: {product.Name}"
-                : $"{product.WhatsAppMessage} | Produto: {product.Name}";
+            var effectivePrice = GetEffectivePrice(product);
 
-            var whatsappUrl = $"https://wa.me/55{normalizedPhone}?text={Uri.EscapeDataString(message)}";
+            string? whatsAppUrl = null;
+
+            if (!string.IsNullOrWhiteSpace(normalizedPhone))
+            {
+                var message = string.IsNullOrWhiteSpace(product.WhatsAppMessage)
+                    ? $"Olá! Tenho interesse no produto: {product.Name}"
+                    : $"{product.WhatsAppMessage} | Produto: {product.Name}";
+
+                whatsAppUrl = $"https://wa.me/55{normalizedPhone}?text={Uri.EscapeDataString(message)}";
+            }
 
             return new PublicCatalogProductResponse(
                 product.Id,
                 product.Name,
+                product.Category,
                 product.Description,
                 product.Price,
                 product.Price.ToString("C", culture),
+                product.OriginalPrice,
+                product.OriginalPrice.HasValue ? product.OriginalPrice.Value.ToString("C", culture) : null,
+                product.PromotionalPrice,
+                product.PromotionalPrice.HasValue ? product.PromotionalPrice.Value.ToString("C", culture) : null,
+                effectivePrice,
+                effectivePrice.ToString("C", culture),
                 product.ImageUrl,
                 product.StockQuantity,
-                whatsappUrl
+                product.IsFeatured,
+                whatsAppUrl
             );
         }).ToList();
 
@@ -76,5 +92,12 @@ public class PublicCatalogController : ControllerBase
             user.Phone,
             productResponses
         ));
+    }
+
+    private static decimal GetEffectivePrice(Product product)
+    {
+        return product.PromotionalPrice.HasValue && product.PromotionalPrice.Value > 0
+            ? product.PromotionalPrice.Value
+            : product.Price;
     }
 }

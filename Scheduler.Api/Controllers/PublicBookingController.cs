@@ -1,10 +1,10 @@
-﻿using System.Globalization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
 using Scheduler.Api.Entities;
-using Scheduler.Api.Services.Notifications;
+using Scheduler.Api.Services.Contracts;
+using System.Globalization;
 
 namespace Scheduler.Api.Controllers;
 
@@ -13,14 +13,14 @@ namespace Scheduler.Api.Controllers;
 public class PublicBookingController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly IAppointmentNotificationService _notificationService;
+    private readonly IBookingAutomationService _bookingAutomationService;
 
     public PublicBookingController(
         AppDbContext context,
-        IAppointmentNotificationService notificationService)
+        IBookingAutomationService bookingAutomationService)
     {
         _context = context;
-        _notificationService = notificationService;
+        _bookingAutomationService = bookingAutomationService;
     }
 
     [HttpGet("{slug}")]
@@ -57,6 +57,101 @@ public class PublicBookingController : ControllerBase
         );
 
         return Ok(response);
+    }
+
+    [HttpPost("{slug}/appointments")]
+    public async Task<ActionResult<PublicBookingSuccessResponse>> Create(
+        string slug,
+        [FromBody] PublicBookAppointmentRequest request)
+    {
+        var professional = await _context.Users
+            .FirstOrDefaultAsync(x =>
+                x.PublicSlug == slug &&
+                x.Role == "professional" &&
+                x.IsActive);
+
+        if (professional is null)
+        {
+            return NotFound(new ApiMessage("Profissional não encontrado."));
+        }
+
+        var service = await _context.Services
+            .FirstOrDefaultAsync(x =>
+                x.Id == request.ServiceId &&
+                x.UserId == professional.Id &&
+                x.IsActive);
+
+        if (service is null)
+        {
+            return NotFound(new ApiMessage("Serviço não encontrado."));
+        }
+
+        var client = await _context.Clients
+            .FirstOrDefaultAsync(x =>
+                x.UserId == professional.Id &&
+                x.Phone == request.Phone);
+
+        if (client is null)
+        {
+            client = new Client
+            {
+                UserId = professional.Id,
+                FullName = request.FullName.Trim(),
+                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
+                Phone = request.Phone.Trim(),
+                Notes = "Criado automaticamente via agendamento público.",
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+
+            _context.Clients.Add(client);
+            await _context.SaveChangesAsync();
+        }
+
+        var appointment = new Appointment
+        {
+            UserId = professional.Id,
+            ClientId = client.Id,
+            ServiceId = service.Id,
+            AppointmentDate = request.AppointmentDate.Date,
+            StartTime = request.StartTime,
+            EndTime = request.EndTime,
+            Status = "scheduled",
+            PriceAtBooking = service.Price,
+            Notes = request.Notes,
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
+        };
+
+        _context.Appointments.Add(appointment);
+        await _context.SaveChangesAsync();
+
+        var userSetting = await _context.UserSettings
+    .AsNoTracking()
+    .FirstOrDefaultAsync(x => x.UserId == professional.Id);
+
+        var automationResult = await _bookingAutomationService.ProcessAsync(
+            professional,
+            userSetting,
+            client,
+            service,
+            appointment
+        );
+
+        return Ok(new PublicBookingSuccessResponse(
+            appointment.Id,
+            client.FullName,
+            service.Name,
+            appointment.AppointmentDate.ToString("dd/MM/yyyy"),
+            appointment.StartTime.ToString(@"hh\:mm"),
+            appointment.EndTime.ToString(@"hh\:mm"),
+            professional.FullName,
+            professional.BusinessName,
+            automationResult.ClientEmailSent,
+            automationResult.ProfessionalEmailSent,
+            automationResult.CalendarCreated,
+            "Agendamento realizado com sucesso."
+        ));
     }
 
     [HttpGet("{slug}/available-slots")]
@@ -212,12 +307,6 @@ public class PublicBookingController : ControllerBase
 
         _context.Appointments.Add(appointment);
         await _context.SaveChangesAsync();
-
-        await _notificationService.NotifyCreatedAsync(
-            professional,
-            client,
-            service,
-            appointment);
 
         return Ok(new PublicBookingCreatedResponse(
             appointment.Id,

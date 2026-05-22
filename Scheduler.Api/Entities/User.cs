@@ -46,15 +46,25 @@ public class User
     [Column("is_active")]
     public bool IsActive { get; set; } = true;
 
+    [Column("has_appointments_module")]
+    public bool HasAppointmentsModule { get; set; } = true;
+
+    [Column("has_catalog_module")]
+    public bool HasCatalogModule { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
+
+    [Column("company_id")]
     public ulong? CompanyId { get; set; }
+
     public Company? Company { get; set; }
 
     public ICollection<Client> Clients { get; set; } = [];
     public ICollection<Service> Services { get; set; } = [];
     public ICollection<Appointment> Appointments { get; set; } = [];
+    public ICollection<UserSetting> UserSettings { get; set; } = [];
 }

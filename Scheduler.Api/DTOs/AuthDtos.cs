@@ -8,7 +8,11 @@ public record RegisterProfessionalRequest(
     string Email,
     string? Phone,
     string Password,
-    string? Specialty
+    string? Specialty,
+    string? Timezone,
+    string? PublicSlug,
+    bool HasAppointmentsModule,
+    bool HasCatalogModule
 );
 
 public record RegisterClientRequest(
@@ -30,11 +34,12 @@ public record UserResponse(
     string? Specialty,
     string Timezone,
     string Role,
+    string? PublicSlug,
     ulong? ProfessionalUserId,
     ulong? ClientId,
-    string? PublicSlug
+    bool HasAppointmentsModule,
+    bool HasCatalogModule
 );
-
 public record LoginResponse(
     string Token,
     UserResponse User

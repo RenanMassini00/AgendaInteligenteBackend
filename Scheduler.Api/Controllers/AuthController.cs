@@ -34,30 +34,56 @@ public class AuthController : ControllerBase
         if (!string.Equals(user.PasswordHash, request.Password, StringComparison.Ordinal))
             return Unauthorized(new ApiMessage("Senha inválida."));
 
-        var token = $"dev-token-{user.Role}-user-{user.Id}";
+        var normalizedRole = NormalizeRole(user.Role);
+        var token = $"dev-token-{normalizedRole}-user-{user.Id}";
+
         return Ok(new LoginResponse(token, ToUserResponse(user)));
     }
 
     [HttpPost("register-professional")]
     public async Task<ActionResult<LoginResponse>> RegisterProfessional(RegisterProfessionalRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+        if (string.IsNullOrWhiteSpace(request.FullName) ||
+            string.IsNullOrWhiteSpace(request.Email) ||
+            string.IsNullOrWhiteSpace(request.Password))
+        {
             return BadRequest(new ApiMessage("Nome, e-mail e senha são obrigatórios."));
+        }
+
+        if (!request.HasAppointmentsModule && !request.HasCatalogModule)
+        {
+            return BadRequest(new ApiMessage("Selecione pelo menos um módulo: agendamentos ou catálogo."));
+        }
 
         var email = request.Email.Trim().ToLowerInvariant();
         var exists = await _context.Users.AnyAsync(x => x.Email == email);
-        if (exists) return Conflict(new ApiMessage("Já existe uma conta com esse e-mail."));
+
+        if (exists)
+        {
+            return Conflict(new ApiMessage("Já existe uma conta com esse e-mail."));
+        }
+
+        var generatedSlug = string.IsNullOrWhiteSpace(request.PublicSlug)
+            ? GenerateSlug(string.IsNullOrWhiteSpace(request.BusinessName) ? request.FullName : request.BusinessName!)
+            : GenerateSlug(request.PublicSlug);
 
         var user = new User
         {
             FullName = request.FullName.Trim(),
-            BusinessName = string.IsNullOrWhiteSpace(request.BusinessName) ? request.FullName.Trim() : request.BusinessName.Trim(),
+            BusinessName = string.IsNullOrWhiteSpace(request.BusinessName)
+                ? request.FullName.Trim()
+                : request.BusinessName.Trim(),
             Email = email,
             Phone = request.Phone?.Trim(),
             PasswordHash = request.Password,
             Specialty = request.Specialty?.Trim(),
             Role = "professional",
-            PublicSlug = GenerateSlug(string.IsNullOrWhiteSpace(request.BusinessName) ? request.FullName : request.BusinessName!),
+            PublicSlug = generatedSlug,
+            Timezone = string.IsNullOrWhiteSpace(request.Timezone)
+                ? "America/Sao_Paulo"
+                : request.Timezone.Trim(),
+            HasAppointmentsModule = request.HasAppointmentsModule,
+            HasCatalogModule = request.HasCatalogModule,
             IsActive = true,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
@@ -77,9 +103,13 @@ public class AuthController : ControllerBase
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
         });
+
         await _context.SaveChangesAsync();
 
-        return Ok(new LoginResponse($"dev-token-professional-user-{user.Id}", ToUserResponse(user)));
+        return Ok(new LoginResponse(
+            $"dev-token-professional-user-{user.Id}",
+            ToUserResponse(user)
+        ));
     }
 
     [HttpPost("register-client")]
@@ -88,7 +118,10 @@ public class AuthController : ControllerBase
         if (request.ProfessionalUserId == 0 || string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Phone) || string.IsNullOrWhiteSpace(request.Password))
             return BadRequest(new ApiMessage("Profissional, nome, e-mail, telefone e senha são obrigatórios."));
 
-        var professional = await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == request.ProfessionalUserId && x.Role == "professional" && x.IsActive);
+        var professional = await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == request.ProfessionalUserId && x.Role == "professional" && x.IsActive);
+
         if (professional is null) return BadRequest(new ApiMessage("Profissional inválido."));
 
         var email = request.Email.Trim().ToLowerInvariant();
@@ -107,6 +140,7 @@ public class AuthController : ControllerBase
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
         };
+
         _context.Clients.Add(client);
         await _context.SaveChangesAsync();
 
@@ -123,6 +157,7 @@ public class AuthController : ControllerBase
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
         };
+
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
@@ -132,23 +167,42 @@ public class AuthController : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<UserResponse>> Me([FromQuery] ulong userId = 1)
     {
-        var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId && x.IsActive);
+        var user = await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == userId && x.IsActive);
+
         if (user is null) return NotFound(new ApiMessage("Usuário não encontrado."));
+
         return Ok(ToUserResponse(user));
     }
 
+    private static string NormalizeRole(string role)
+    {
+        var normalized = (role ?? string.Empty).Trim().ToLowerInvariant();
+
+        return normalized switch
+        {
+            "master admin" => "master_admin",
+            "master_admin" => "master_admin",
+            "client" => "client",
+            _ => "professional"
+        };
+    }
+
     private static UserResponse ToUserResponse(User user) => new(
-        user.Id,
-        user.FullName,
-        user.BusinessName,
-        user.Email,
-        user.Phone,
-        user.Specialty,
-        user.Timezone,
-        user.Role,
-        user.ProfessionalUserId,
-        user.ClientId,
-        user.PublicSlug
+        Id: user.Id,
+        FullName: user.FullName,
+        BusinessName: user.BusinessName,
+        Email: user.Email,
+        Phone: user.Phone,
+        Specialty: user.Specialty,
+        Timezone: user.Timezone,
+        Role: NormalizeRole(user.Role),
+        PublicSlug: user.PublicSlug,
+        ProfessionalUserId: user.ProfessionalUserId,
+        ClientId: user.ClientId,
+        HasAppointmentsModule: user.HasAppointmentsModule,
+        HasCatalogModule: user.HasCatalogModule
     );
 
     private static string GenerateSlug(string raw)

@@ -1,4 +1,6 @@
-﻿namespace Scheduler.Api.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Scheduler.Api.DTOs;
 
 public record PublicBookingServiceResponse(
     ulong Id,
@@ -8,6 +10,17 @@ public record PublicBookingServiceResponse(
     string Duration,
     decimal Price,
     string PriceFormatted
+);
+
+public record PublicBookAppointmentRequest(
+    [Required] ulong ServiceId,
+    [Required] string FullName,
+    [Required] string Phone,
+    string? Email,
+    [Required] DateTime AppointmentDate,
+    [Required] TimeSpan StartTime,
+    [Required] TimeSpan EndTime,
+    string? Notes
 );
 
 public record PublicBookingProfessionalResponse(
@@ -39,5 +52,20 @@ public record PublicBookingCreatedResponse(
     string Date,
     string Time,
     string Status,
+    string Message
+);
+
+public record PublicBookingSuccessResponse(
+    ulong AppointmentId,
+    string ClientName,
+    string ServiceName,
+    string Date,
+    string StartTime,
+    string EndTime,
+    string ProfessionalName,
+    string? BusinessName,
+    bool ClientEmailSent,
+    bool ProfessionalEmailSent,
+    bool CalendarCreated,
     string Message
 );

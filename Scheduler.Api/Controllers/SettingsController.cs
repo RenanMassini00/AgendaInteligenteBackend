@@ -18,19 +18,38 @@ public class SettingsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<SettingsResponse>> Get([FromQuery] ulong userId = 1)
+    public async Task<ActionResult<SettingsResponse>> Get([FromQuery] ulong userId)
     {
-        var settings = await _context.UserSettings.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId);
+        if (userId == 0)
+        {
+            return BadRequest(new ApiMessage("Usuário inválido."));
+        }
+
+        var user = await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == userId && x.IsActive);
+
+        if (user is null)
+        {
+            return NotFound(new ApiMessage("Usuário não encontrado."));
+        }
+
+        var settings = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+
         if (settings is null)
         {
             settings = new UserSetting
             {
                 UserId = userId,
                 Theme = "light",
+                AccentColor = "blue",
+                CompanyLogoUrl = null,
                 LanguageCode = "pt-BR",
                 ReminderMinutes = 60,
                 EmailNotifications = false,
-                WhatsappNotifications = false,
+                WhatsappNotifications = true,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -39,33 +58,11 @@ public class SettingsController : ControllerBase
             await _context.SaveChangesAsync();
         }
 
-        return Ok(ToResponse(settings));
+        return Ok(new SettingsResponse(
+            settings.UserId,
+            settings.Theme,
+            settings.AccentColor,
+            settings.CompanyLogoUrl
+        ));
     }
-
-    [HttpPut]
-    public async Task<ActionResult<SettingsResponse>> Update([FromQuery] ulong userId, SettingsUpdateRequest request)
-    {
-        var settings = await _context.UserSettings.FirstOrDefaultAsync(x => x.UserId == userId);
-        if (settings is null) return NotFound(new ApiMessage("Configurações não encontradas."));
-
-        settings.Theme = request.Theme;
-        settings.LanguageCode = request.LanguageCode;
-        settings.ReminderMinutes = request.ReminderMinutes;
-        settings.EmailNotifications = request.EmailNotifications;
-        settings.WhatsappNotifications = request.WhatsappNotifications;
-        settings.UpdatedAt = DateTime.Now;
-
-        await _context.SaveChangesAsync();
-        return Ok(ToResponse(settings));
-    }
-
-    private static SettingsResponse ToResponse(UserSetting settings) => new(
-        settings.Id,
-        settings.UserId,
-        settings.Theme,
-        settings.LanguageCode,
-        settings.ReminderMinutes,
-        settings.EmailNotifications,
-        settings.WhatsappNotifications
-    );
 }

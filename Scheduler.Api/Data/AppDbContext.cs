@@ -31,14 +31,11 @@ public class AppDbContext : DbContext
             entity.HasIndex(e => e.PublicSlug).IsUnique().HasDatabaseName("uq_users_public_slug");
         });
 
-        modelBuilder.Entity<UserSetting>(entity =>
-        {
-            entity.HasIndex(e => e.UserId).IsUnique().HasDatabaseName("uq_user_settings_user_id");
-            entity.HasOne(e => e.User)
-                .WithOne()
-                .HasForeignKey<UserSetting>(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+        modelBuilder.Entity<UserSetting>()
+            .HasOne(x => x.User)
+            .WithMany(x => x.UserSettings)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Client>(entity =>
         {

@@ -29,17 +29,32 @@ public class ProfileController : ControllerBase
         }
 
         return Ok(new UserResponse(
-            user.Id,
-            user.FullName,
-            user.BusinessName,
-            user.Email,
-            user.Phone,
-            user.Specialty,
-            user.Timezone,
-            user.Role,
-            user.ProfessionalUserId,
-            user.ClientId,
-            user.PublicSlug
+            Id: user.Id,
+            FullName: user.FullName,
+            BusinessName: user.BusinessName,
+            Email: user.Email,
+            Phone: user.Phone,
+            Specialty: user.Specialty,
+            Timezone: user.Timezone,
+            Role: NormalizeRole(user.Role),
+            PublicSlug: user.PublicSlug,
+            ProfessionalUserId: user.ProfessionalUserId,
+            ClientId: user.ClientId,
+            HasAppointmentsModule: user.HasAppointmentsModule,
+            HasCatalogModule: user.HasCatalogModule
         ));
+    }
+
+    private static string NormalizeRole(string role)
+    {
+        var normalized = (role ?? string.Empty).Trim().ToLowerInvariant();
+
+        return normalized switch
+        {
+            "master admin" => "master_admin",
+            "master_admin" => "master_admin",
+            "client" => "client",
+            _ => "professional"
+        };
     }
 }

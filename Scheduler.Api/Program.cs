@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
+using Scheduler.Api.Options;
+using Scheduler.Api.Services;
+using Scheduler.Api.Services.Contracts;
 using Scheduler.Api.Services.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +13,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.Configure<ZApiOptions>(builder.Configuration.GetSection("ZApi"));
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+builder.Services.Configure<GoogleCalendarOptions>(builder.Configuration.GetSection("GoogleCalendar"));
 
 builder.Services.AddCors(options =>
 {
@@ -42,6 +48,10 @@ builder.Services.AddHttpClient<IWhatsAppGateway, HttpWhatsAppGateway>((sp, clien
 });
 
 builder.Services.AddScoped<IAppointmentNotificationService, AppointmentNotificationService>();
+builder.Services.AddHttpClient<IWhatsAppService, ZApiWhatsAppService>();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
+builder.Services.AddScoped<IBookingAutomationService, BookingAutomationService>();
 
 var app = builder.Build();
 

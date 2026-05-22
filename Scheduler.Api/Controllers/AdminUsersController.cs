@@ -42,7 +42,9 @@ public class AdminUsersController : ControllerBase
             user.IsActive ? "active" : "inactive",
             user.CreatedAt.ToString("dd/MM/yyyy"),
             user.PublicSlug,
-            user.Timezone
+            user.Timezone,
+            user.HasAppointmentsModule,
+            user.HasCatalogModule
         )).ToList();
 
         return Ok(result);
@@ -71,7 +73,9 @@ public class AdminUsersController : ControllerBase
             user.IsActive ? "active" : "inactive",
             user.CreatedAt.ToString("dd/MM/yyyy"),
             user.PublicSlug,
-            user.Timezone
+            user.Timezone,
+            user.HasAppointmentsModule,
+            user.HasCatalogModule
         ));
     }
 
@@ -91,6 +95,11 @@ public class AdminUsersController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Password))
         {
             return BadRequest(new ApiMessage("Senha é obrigatória."));
+        }
+
+        if (!request.HasAppointmentsModule && !request.HasCatalogModule)
+        {
+            return BadRequest(new ApiMessage("Selecione pelo menos um módulo para o usuário."));
         }
 
         var normalizedEmail = request.Email.Trim().ToLower();
@@ -126,7 +135,9 @@ public class AdminUsersController : ControllerBase
             Timezone = string.IsNullOrWhiteSpace(request.Timezone) ? "America/Sao_Paulo" : request.Timezone.Trim(),
             IsActive = true,
             CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
+            UpdatedAt = DateTime.Now,
+            HasAppointmentsModule = request.HasAppointmentsModule,
+            HasCatalogModule = request.HasCatalogModule,
         };
 
         _context.Users.Add(user);
@@ -138,8 +149,7 @@ public class AdminUsersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<ApiMessage>> Update(ulong id, [FromBody] AdminUserUpdateRequest request)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(x => x.Id == id && x.Role == "professional");
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id && x.Role == "professional");
 
         if (user is null)
         {
@@ -148,7 +158,7 @@ public class AdminUsersController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(request.FullName))
         {
-            return BadRequest(new ApiMessage("Nome do usuário é obrigatório."));
+            return BadRequest(new ApiMessage("Nome é obrigatório."));
         }
 
         if (string.IsNullOrWhiteSpace(request.Email))
@@ -159,37 +169,24 @@ public class AdminUsersController : ControllerBase
         var normalizedEmail = request.Email.Trim().ToLower();
 
         var emailAlreadyExists = await _context.Users
-            .AnyAsync(x => x.Id != id && x.Email == normalizedEmail);
+            .AnyAsync(x => x.Id != id && x.Email.ToLower() == normalizedEmail);
 
         if (emailAlreadyExists)
         {
             return Conflict(new ApiMessage("Já existe outro usuário com esse e-mail."));
         }
 
-        var baseSlugSource = !string.IsNullOrWhiteSpace(request.BusinessName)
-            ? request.BusinessName!
-            : request.FullName;
-
-        var generatedSlug = await GenerateUniqueSlugAsync(
-            request.PublicSlug,
-            baseSlugSource,
-            id
-        );
-
         user.FullName = request.FullName.Trim();
         user.BusinessName = string.IsNullOrWhiteSpace(request.BusinessName) ? null : request.BusinessName.Trim();
         user.Email = normalizedEmail;
         user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
         user.Specialty = string.IsNullOrWhiteSpace(request.Specialty) ? null : request.Specialty.Trim();
-        user.PublicSlug = generatedSlug;
         user.Timezone = string.IsNullOrWhiteSpace(request.Timezone) ? "America/Sao_Paulo" : request.Timezone.Trim();
+        user.PublicSlug = string.IsNullOrWhiteSpace(request.PublicSlug) ? user.PublicSlug : request.PublicSlug.Trim();
+        user.HasAppointmentsModule = request.HasAppointmentsModule;
+        user.HasCatalogModule = request.HasCatalogModule;
         user.IsActive = request.IsActive;
         user.UpdatedAt = DateTime.Now;
-
-        if (!string.IsNullOrWhiteSpace(request.Password))
-        {
-            user.PasswordHash = BCryptNet.HashPassword(request.Password);
-        }
 
         await _context.SaveChangesAsync();
 

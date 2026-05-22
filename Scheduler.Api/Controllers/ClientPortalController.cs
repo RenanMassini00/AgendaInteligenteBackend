@@ -34,9 +34,11 @@ public class ClientPortalController : ControllerBase
             user.Specialty,
             user.Timezone,
             user.Role,
+            user.PublicSlug,
             user.ProfessionalUserId,
             user.ClientId,
-            user.PublicSlug
+            user.HasAppointmentsModule,
+            user.HasCatalogModule
         ));
     }
 

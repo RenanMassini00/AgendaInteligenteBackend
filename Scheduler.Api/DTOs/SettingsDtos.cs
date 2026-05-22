@@ -1,19 +1,24 @@
 namespace Scheduler.Api.DTOs;
 
 public record SettingsResponse(
-    ulong Id,
     ulong UserId,
     string Theme,
-    string LanguageCode,
-    int ReminderMinutes,
-    bool EmailNotifications,
-    bool WhatsappNotifications
+    string AccentColor,
+    string? CompanyLogoUrl
 );
 
-public record SettingsUpdateRequest(
+public record AdminBrandingUserResponse(
+    ulong UserId,
+    string FullName,
+    string? BusinessName,
+    string Email,
     string Theme,
-    string LanguageCode,
-    int ReminderMinutes,
-    bool EmailNotifications,
-    bool WhatsappNotifications
+    string AccentColor,
+    string? CompanyLogoUrl
+);
+
+public record AdminBrandingUpdateRequest(
+    string Theme,
+    string AccentColor,
+    string? CompanyLogoUrl
 );
