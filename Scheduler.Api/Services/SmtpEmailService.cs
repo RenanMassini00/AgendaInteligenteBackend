@@ -24,13 +24,13 @@ public class SmtpEmailService : IEmailService
     {
         if (!_options.Enabled)
         {
-            _logger.LogWarning("Envio de e-mail desabilitado em Email:Enabled.");
+            _logger.LogWarning("Envio de e-mail desabilitado.");
             return false;
         }
 
         if (string.IsNullOrWhiteSpace(toEmail))
         {
-            _logger.LogWarning("Envio de e-mail ignorado porque o destinatário está vazio.");
+            _logger.LogWarning("Destinatário de e-mail não informado.");
             return false;
         }
 

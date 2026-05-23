@@ -2,16 +2,17 @@ namespace Scheduler.Api.DTOs;
 
 public record ClientResponse(
     ulong Id,
-    string Name,
+    string FullName,
     string? Email,
     string Phone,
-    DateTime? BirthDate,
-    string? Notes
+    string? BirthDate,
+    string? Notes,
+    string Status,
+    string CreatedAt
 );
 
 public record ClientCreateRequest(
-    ulong UserId,
-    string Name,
+    string FullName,
     string? Email,
     string Phone,
     DateTime? BirthDate,
@@ -19,10 +20,9 @@ public record ClientCreateRequest(
 );
 
 public record ClientUpdateRequest(
-    string Name,
+    string FullName,
     string? Email,
     string Phone,
     DateTime? BirthDate,
-    string? Notes,
-    bool IsActive
+    string? Notes
 );

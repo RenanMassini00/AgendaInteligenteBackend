@@ -18,13 +18,17 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("summary")]
-    public async Task<ActionResult<DashboardSummaryResponse>> Summary([FromQuery] ulong userId = 1, [FromQuery] string? date = null)
+    public async Task<ActionResult<DashboardSummaryResponse>> Summary(
+        [FromQuery] ulong userId = 1,
+        [FromQuery] string? date = null)
     {
         var culture = CultureInfo.GetCultureInfo("pt-BR");
         var targetDate = DateTime.Today;
 
         if (!string.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out var parsedDate))
+        {
             targetDate = parsedDate.Date;
+        }
 
         var todayAppointments = await _context.Appointments
             .AsNoTracking()
@@ -32,10 +36,15 @@ public class DashboardController : ControllerBase
             .ToListAsync();
 
         var appointmentsToday = todayAppointments.Count;
-        var expectedRevenue = todayAppointments.Where(x => x.Status != "cancelled").Sum(x => x.PriceAtBooking);
+        var expectedRevenue = todayAppointments
+            .Where(x => x.Status != "cancelled")
+            .Sum(x => x.PriceAtBooking);
 
-        var clientsCount = await _context.Clients.CountAsync(x => x.UserId == userId && x.IsActive);
-        var servicesCount = await _context.Services.CountAsync(x => x.UserId == userId && x.IsActive);
+        var clientsCount = await _context.Clients
+            .CountAsync(x => x.UserId == userId && x.IsActive);
+
+        var servicesCount = await _context.Services
+            .CountAsync(x => x.UserId == userId && x.IsActive);
 
         var upcomingAppointmentsData = await _context.Appointments
             .AsNoTracking()
@@ -47,29 +56,43 @@ public class DashboardController : ControllerBase
             .Take(5)
             .ToListAsync();
 
-        var upcomingAppointments = upcomingAppointmentsData.Select(x => new AppointmentResponse(
-            x.Id,
-            x.ClientId,
-            x.ServiceId,
-            x.Client?.FullName ?? string.Empty,
-            x.Service?.Name ?? string.Empty,
-            x.AppointmentDate.ToString("yyyy-MM-dd"),
-            x.StartTime.ToString(@"hh\:mm"),
-            x.StartTime.ToString(@"hh\:mm"),
-            x.EndTime.ToString(@"hh\:mm"),
-            x.Status,
-            x.PriceAtBooking,
-            x.PriceAtBooking.ToString("C", culture),
-            x.Notes
-        )).ToList();
+        var upcomingAppointments = upcomingAppointmentsData
+            .Select(x => new AppointmentResponse(
+                x.Id,
+                x.ClientId,
+                x.ServiceId,
+                x.Client?.FullName ?? string.Empty,
+                x.Service?.Name ?? string.Empty,
+                x.AppointmentDate.ToString("yyyy-MM-dd"),
+                x.StartTime.ToString(@"hh\:mm"),
+                x.StartTime.ToString(@"hh\:mm"),
+                x.EndTime.ToString(@"hh\:mm"),
+                x.Status,
+                x.PriceAtBooking,
+                x.PriceAtBooking.ToString("C", culture),
+                x.Notes
+            ))
+            .ToList();
 
-        var recentClients = await _context.Clients
+        var recentClientsData = await _context.Clients
             .AsNoTracking()
             .Where(x => x.UserId == userId && x.IsActive)
             .OrderByDescending(x => x.CreatedAt)
             .Take(5)
-            .Select(x => new ClientResponse(x.Id, x.FullName, x.Email, x.Phone, x.BirthDate, x.Notes))
             .ToListAsync();
+
+        var recentClients = recentClientsData
+            .Select(x => new ClientResponse(
+                x.Id,
+                x.FullName,
+                x.Email,
+                x.Phone,
+                x.BirthDate.HasValue ? x.BirthDate.Value.ToString("yyyy-MM-dd") : null,
+                x.Notes,
+                x.IsActive ? "active" : "inactive",
+                x.CreatedAt.ToString("dd/MM/yyyy")
+            ))
+            .ToList();
 
         var topServicesData = await _context.Services
             .AsNoTracking()
@@ -78,16 +101,18 @@ public class DashboardController : ControllerBase
             .Take(5)
             .ToListAsync();
 
-        var topServices = topServicesData.Select(x => new ServiceResponse(
-            x.Id,
-            x.Name,
-            x.Description,
-            x.DurationMinutes,
-            x.DurationMinutes < 60 ? $"{x.DurationMinutes} min" : $"{x.DurationMinutes / 60}h",
-            x.Price,
-            x.Price.ToString("C", culture),
-            x.ColorHex
-        )).ToList();
+        var topServices = topServicesData
+            .Select(x => new ServiceResponse(
+                x.Id,
+                x.Name,
+                x.Description,
+                x.DurationMinutes,
+                x.DurationMinutes < 60 ? $"{x.DurationMinutes} min" : $"{x.DurationMinutes / 60}h",
+                x.Price,
+                x.Price.ToString("C", culture),
+                x.ColorHex
+            ))
+            .ToList();
 
         return Ok(new DashboardSummaryResponse(
             appointmentsToday,

@@ -44,7 +44,6 @@ public class BookingAutomationService : IBookingAutomationService
                 <li><strong>Data:</strong> {dateText}</li>
                 <li><strong>Horário:</strong> {timeText}</li>
               </ul>
-              <p>Nos vemos em breve.</p>
             </div>
             """;
 
@@ -52,15 +51,13 @@ public class BookingAutomationService : IBookingAutomationService
             $"""
             <div style="font-family: Arial, sans-serif; color: #111827;">
               <h2>Novo agendamento recebido</h2>
-              <p>Um novo cliente realizou um agendamento na sua agenda.</p>
               <ul>
                 <li><strong>Cliente:</strong> {client.FullName}</li>
                 <li><strong>Telefone:</strong> {client.Phone}</li>
-                <li><strong>E-mail:</strong> {client.Email ?? "Não informado"}</li>
+                <li><strong>E-mail:</strong> {client.Email}</li>
                 <li><strong>Serviço:</strong> {service.Name}</li>
                 <li><strong>Data:</strong> {dateText}</li>
                 <li><strong>Horário:</strong> {timeText}</li>
-                <li><strong>Observações:</strong> {appointment.Notes ?? "Sem observações"}</li>
               </ul>
             </div>
             """;
@@ -71,29 +68,11 @@ public class BookingAutomationService : IBookingAutomationService
             clientEmailHtml
         );
 
-        if (!clientEmailSent)
-        {
-            _logger.LogWarning(
-                "Falha ao enviar e-mail do cliente. AppointmentId: {AppointmentId}, Email: {ClientEmail}",
-                appointment.Id,
-                client.Email
-            );
-        }
-
         var professionalEmailSent = await _emailService.SendAsync(
             professional.Email,
             "Novo agendamento recebido",
             professionalEmailHtml
         );
-
-        if (!professionalEmailSent)
-        {
-            _logger.LogWarning(
-                "Falha ao enviar e-mail do profissional. AppointmentId: {AppointmentId}, Email: {ProfessionalEmail}",
-                appointment.Id,
-                professional.Email
-            );
-        }
 
         var calendarCreated = await _googleCalendarService.CreateAppointmentEventAsync(
             professional,
@@ -102,16 +81,6 @@ public class BookingAutomationService : IBookingAutomationService
             service,
             appointment
         );
-
-        if (!calendarCreated)
-        {
-            _logger.LogWarning(
-                "Falha ao criar evento na agenda. AppointmentId: {AppointmentId}, UserId: {UserId}, CalendarId: {CalendarId}",
-                appointment.Id,
-                professional.Id,
-                userSetting?.GoogleCalendarId
-            );
-        }
 
         return (clientEmailSent, professionalEmailSent, calendarCreated);
     }

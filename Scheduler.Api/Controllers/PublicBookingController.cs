@@ -5,6 +5,7 @@ using Scheduler.Api.DTOs;
 using Scheduler.Api.Entities;
 using Scheduler.Api.Services.Contracts;
 using System.Globalization;
+using System.Net.Mail;
 
 namespace Scheduler.Api.Controllers;
 
@@ -59,101 +60,6 @@ public class PublicBookingController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPost("{slug}/appointments")]
-    public async Task<ActionResult<PublicBookingSuccessResponse>> Create(
-        string slug,
-        [FromBody] PublicBookAppointmentRequest request)
-    {
-        var professional = await _context.Users
-            .FirstOrDefaultAsync(x =>
-                x.PublicSlug == slug &&
-                x.Role == "professional" &&
-                x.IsActive);
-
-        if (professional is null)
-        {
-            return NotFound(new ApiMessage("Profissional não encontrado."));
-        }
-
-        var service = await _context.Services
-            .FirstOrDefaultAsync(x =>
-                x.Id == request.ServiceId &&
-                x.UserId == professional.Id &&
-                x.IsActive);
-
-        if (service is null)
-        {
-            return NotFound(new ApiMessage("Serviço não encontrado."));
-        }
-
-        var client = await _context.Clients
-            .FirstOrDefaultAsync(x =>
-                x.UserId == professional.Id &&
-                x.Phone == request.Phone);
-
-        if (client is null)
-        {
-            client = new Client
-            {
-                UserId = professional.Id,
-                FullName = request.FullName.Trim(),
-                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
-                Phone = request.Phone.Trim(),
-                Notes = "Criado automaticamente via agendamento público.",
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
-
-            _context.Clients.Add(client);
-            await _context.SaveChangesAsync();
-        }
-
-        var appointment = new Appointment
-        {
-            UserId = professional.Id,
-            ClientId = client.Id,
-            ServiceId = service.Id,
-            AppointmentDate = request.AppointmentDate.Date,
-            StartTime = request.StartTime,
-            EndTime = request.EndTime,
-            Status = "scheduled",
-            PriceAtBooking = service.Price,
-            Notes = request.Notes,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
-        };
-
-        _context.Appointments.Add(appointment);
-        await _context.SaveChangesAsync();
-
-        var userSetting = await _context.UserSettings
-    .AsNoTracking()
-    .FirstOrDefaultAsync(x => x.UserId == professional.Id);
-
-        var automationResult = await _bookingAutomationService.ProcessAsync(
-            professional,
-            userSetting,
-            client,
-            service,
-            appointment
-        );
-
-        return Ok(new PublicBookingSuccessResponse(
-            appointment.Id,
-            client.FullName,
-            service.Name,
-            appointment.AppointmentDate.ToString("dd/MM/yyyy"),
-            appointment.StartTime.ToString(@"hh\:mm"),
-            appointment.EndTime.ToString(@"hh\:mm"),
-            professional.FullName,
-            professional.BusinessName,
-            automationResult.ClientEmailSent,
-            automationResult.ProfessionalEmailSent,
-            automationResult.CalendarCreated,
-            "Agendamento realizado com sucesso."
-        ));
-    }
-
     [HttpGet("{slug}/available-slots")]
     public async Task<ActionResult<PublicBookingAvailableSlotsResponse>> GetAvailableSlots(
         string slug,
@@ -188,6 +94,201 @@ public class PublicBookingController : ControllerBase
             targetDate.ToString("yyyy-MM-dd"),
             service.Id,
             slots
+        ));
+    }
+
+    [HttpPost("{slug}/appointments")]
+    public async Task<ActionResult<PublicBookingSuccessResponse>> Create(
+        string slug,
+        [FromBody] PublicBookAppointmentRequest request)
+    {
+        var professional = await _context.Users
+            .FirstOrDefaultAsync(x =>
+                x.PublicSlug == slug &&
+                x.Role == "professional" &&
+                x.IsActive);
+
+        if (professional is null)
+        {
+            return NotFound(new ApiMessage("Profissional não encontrado."));
+        }
+
+        var service = await _context.Services
+            .FirstOrDefaultAsync(x =>
+                x.Id == request.ServiceId &&
+                x.UserId == professional.Id &&
+                x.IsActive);
+
+        if (service is null)
+        {
+            return NotFound(new ApiMessage("Serviço não encontrado."));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return BadRequest(new ApiMessage("Informe o nome do cliente."));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Phone))
+        {
+            return BadRequest(new ApiMessage("Informe o telefone do cliente."));
+        }
+
+        if (request.AppointmentDate == default)
+        {
+            return BadRequest(new ApiMessage("Informe a data do agendamento."));
+        }
+
+        if (request.StartTime == default || request.EndTime == default)
+        {
+            return BadRequest(new ApiMessage("Informe o horário do agendamento."));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest(new ApiMessage("Informe o e-mail do cliente."));
+        }
+
+        if (!IsValidEmail(request.Email))
+        {
+            return BadRequest(new ApiMessage("Informe um e-mail válido."));
+        }
+
+        var targetDate = request.AppointmentDate.Date;
+        var startTime = request.StartTime;
+        var endTime = request.EndTime;
+
+        if (endTime <= startTime)
+        {
+            return BadRequest(new ApiMessage("O horário final deve ser maior que o horário inicial."));
+        }
+
+        var expectedEndTime = startTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
+
+        if (endTime != expectedEndTime)
+        {
+            return BadRequest(new ApiMessage("O horário final não corresponde à duração do serviço."));
+        }
+
+        var windows = await GetAvailabilityWindowsAsync(professional.Id, targetDate);
+
+        if (!windows.Any())
+        {
+            return Conflict(new ApiMessage("Não há disponibilidade cadastrada para essa data."));
+        }
+
+        var fitsWindow = windows.Any(x => startTime >= x.Start && endTime <= x.End);
+
+        if (!fitsWindow)
+        {
+            return Conflict(new ApiMessage("Esse horário não está disponível dentro da agenda configurada."));
+        }
+
+        var appointments = await _context.Appointments
+            .AsNoTracking()
+            .Where(x =>
+                x.UserId == professional.Id &&
+                x.AppointmentDate == targetDate &&
+                x.Status != "cancelled")
+            .ToListAsync();
+
+        var hasConflict = appointments.Any(x => startTime < x.EndTime && endTime > x.StartTime);
+
+        if (hasConflict)
+        {
+            return Conflict(new ApiMessage("Esse horário acabou de ser reservado. Escolha outro."));
+        }
+
+        var normalizedPhone = NormalizePhone(request.Phone);
+
+        var clients = await _context.Clients
+            .Where(x => x.UserId == professional.Id)
+            .ToListAsync();
+
+        var client = clients.FirstOrDefault(x => NormalizePhone(x.Phone) == normalizedPhone);
+
+        if (client is null)
+        {
+            client = new Client
+            {
+                UserId = professional.Id,
+                FullName = request.FullName.Trim(),
+                Email = request.Email.Trim(),
+                Phone = request.Phone.Trim(),
+                BirthDate = null,
+                Notes = string.IsNullOrWhiteSpace(request.Notes)
+                    ? "Criado automaticamente via agendamento público."
+                    : request.Notes.Trim(),
+                IsActive = true,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+
+            _context.Clients.Add(client);
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            client.FullName = request.FullName.Trim();
+            client.Email = request.Email.Trim();
+            client.Phone = request.Phone.Trim();
+
+            if (!string.IsNullOrWhiteSpace(request.Notes))
+            {
+                client.Notes = request.Notes.Trim();
+            }
+
+            client.IsActive = true;
+            client.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+        }
+
+        var appointment = new Appointment
+        {
+            UserId = professional.Id,
+            ClientId = client.Id,
+            ServiceId = service.Id,
+            AppointmentDate = targetDate,
+            StartTime = startTime,
+            EndTime = endTime,
+            Status = "scheduled",
+            PriceAtBooking = service.Price,
+            Notes = string.IsNullOrWhiteSpace(request.Notes)
+                ? "Agendado via página pública."
+                : request.Notes.Trim(),
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
+        };
+
+        _context.Appointments.Add(appointment);
+        await _context.SaveChangesAsync();
+
+        var userSetting = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == professional.Id);
+
+        var automationResult = await _bookingAutomationService.ProcessAsync(
+            professional,
+            userSetting,
+            client,
+            service,
+            appointment
+        );
+
+        return Ok(new PublicBookingSuccessResponse(
+            appointment.Id,
+            client.FullName,
+            service.Name,
+            appointment.AppointmentDate.ToString("dd/MM/yyyy"),
+            appointment.StartTime.ToString(@"hh\:mm"),
+            appointment.EndTime.ToString(@"hh\:mm"),
+            professional.FullName,
+            professional.BusinessName,
+            automationResult.ClientEmailSent,
+            automationResult.ProfessionalEmailSent,
+            automationResult.CalendarCreated,
+            "Agendamento realizado com sucesso."
         ));
     }
 
@@ -286,6 +387,7 @@ public class PublicBookingController : ControllerBase
         {
             client.FullName = request.FullName.Trim();
             client.Phone = request.Phone.Trim();
+            client.IsActive = true;
             client.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
         }
@@ -401,10 +503,28 @@ public class PublicBookingController : ControllerBase
             .ToList();
     }
 
-    private static string NormalizePhone(string phone)
+    private static string NormalizePhone(string? phone)
     {
-        return new string(phone.Where(char.IsDigit).ToArray());
+        return new string((phone ?? string.Empty).Where(char.IsDigit).ToArray());
     }
 
     private sealed record AvailabilityWindow(TimeSpan Start, TimeSpan End);
+
+    private static bool IsValidEmail(string? email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return false;
+        }
+
+        try
+        {
+            var parsed = new MailAddress(email.Trim());
+            return parsed.Address.Equals(email.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

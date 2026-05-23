@@ -166,6 +166,11 @@ public class AdminUsersController : ControllerBase
             return BadRequest(new ApiMessage("E-mail é obrigatório."));
         }
 
+        if (!IsValidEmail(request.Email))
+        {
+            return BadRequest(new ApiMessage("Informe um e-mail válido."));
+        }
+
         var normalizedEmail = request.Email.Trim().ToLower();
 
         var emailAlreadyExists = await _context.Users
@@ -191,6 +196,24 @@ public class AdminUsersController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new ApiMessage("Usuário atualizado com sucesso."));
+    }
+
+    private static bool IsValidEmail(string? email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return false;
+        }
+
+        try
+        {
+            var parsed = new System.Net.Mail.MailAddress(email.Trim());
+            return parsed.Address.Equals(email.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     [HttpDelete("{id}")]

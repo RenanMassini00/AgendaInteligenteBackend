@@ -18,40 +18,73 @@ public class ClientsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ClientResponse>>> GetAll([FromQuery] ulong userId = 1)
+    public async Task<ActionResult<List<ClientResponse>>> GetAll([FromQuery] ulong userId = 1)
     {
         var clients = await _context.Clients
             .AsNoTracking()
             .Where(x => x.UserId == userId && x.IsActive)
-            .OrderBy(x => x.FullName)
-            .Select(x => ToResponse(x))
+            .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
 
-        return Ok(clients);
+        var result = clients.Select(client => new ClientResponse(
+            client.Id,
+            client.FullName,
+            client.Email,
+            client.Phone,
+            client.BirthDate.HasValue ? client.BirthDate.Value.ToString("yyyy-MM-dd") : null,
+            client.Notes,
+            client.IsActive ? "active" : "inactive",
+            client.CreatedAt.ToString("dd/MM/yyyy")
+        )).ToList();
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ClientResponse>> GetById(ulong id)
     {
-        var client = await _context.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
-        if (client is null) return NotFound(new ApiMessage("Cliente não encontrado."));
-        return Ok(ToResponse(client));
+        var client = await _context.Clients
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (client is null)
+        {
+            return NotFound(new ApiMessage("Cliente não encontrado."));
+        }
+
+        return Ok(new ClientResponse(
+            client.Id,
+            client.FullName,
+            client.Email,
+            client.Phone,
+            client.BirthDate.HasValue ? client.BirthDate.Value.ToString("yyyy-MM-dd") : null,
+            client.Notes,
+            client.IsActive ? "active" : "inactive",
+            client.CreatedAt.ToString("dd/MM/yyyy")
+        ));
     }
 
     [HttpPost]
-    public async Task<ActionResult<ClientResponse>> Create(ClientCreateRequest request)
+    public async Task<ActionResult<ApiMessage>> Create([FromBody] ClientCreateRequest request, [FromQuery] ulong userId = 1)
     {
-        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Phone))
-            return BadRequest(new ApiMessage("Nome e telefone são obrigatórios."));
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return BadRequest(new ApiMessage("Nome do cliente é obrigatório."));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Phone))
+        {
+            return BadRequest(new ApiMessage("Telefone é obrigatório."));
+        }
 
         var client = new Client
         {
-            UserId = request.UserId == 0 ? 1 : request.UserId,
-            FullName = request.Name.Trim(),
-            Email = request.Email,
+            UserId = userId,
+            FullName = request.FullName.Trim(),
+            Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
             Phone = request.Phone.Trim(),
             BirthDate = request.BirthDate,
-            Notes = request.Notes,
+            Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim(),
             IsActive = true,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
@@ -60,46 +93,56 @@ public class ClientsController : ControllerBase
         _context.Clients.Add(client);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetById), new { id = client.Id }, ToResponse(client));
+        return Ok(new ApiMessage("Cliente cadastrado com sucesso."));
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<ClientResponse>> Update(ulong id, ClientUpdateRequest request)
+    public async Task<ActionResult<ApiMessage>> Update(ulong id, [FromBody] ClientUpdateRequest request)
     {
         var client = await _context.Clients.FirstOrDefaultAsync(x => x.Id == id);
-        if (client is null) return NotFound(new ApiMessage("Cliente não encontrado."));
 
-        client.FullName = request.Name.Trim();
-        client.Email = request.Email;
+        if (client is null)
+        {
+            return NotFound(new ApiMessage("Cliente não encontrado."));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return BadRequest(new ApiMessage("Nome do cliente é obrigatório."));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Phone))
+        {
+            return BadRequest(new ApiMessage("Telefone é obrigatório."));
+        }
+
+        client.FullName = request.FullName.Trim();
+        client.Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
         client.Phone = request.Phone.Trim();
         client.BirthDate = request.BirthDate;
-        client.Notes = request.Notes;
-        client.IsActive = request.IsActive;
+        client.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
         client.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync();
-        return Ok(ToResponse(client));
+
+        return Ok(new ApiMessage("Cliente atualizado com sucesso."));
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult<ApiMessage>> Delete(ulong id)
     {
         var client = await _context.Clients.FirstOrDefaultAsync(x => x.Id == id);
-        if (client is null) return NotFound(new ApiMessage("Cliente não encontrado."));
+
+        if (client is null)
+        {
+            return NotFound(new ApiMessage("Cliente não encontrado."));
+        }
 
         client.IsActive = false;
         client.UpdatedAt = DateTime.Now;
+
         await _context.SaveChangesAsync();
 
-        return Ok(new ApiMessage("Cliente removido com sucesso."));
+        return Ok(new ApiMessage("Cliente excluído com sucesso."));
     }
-
-    private static ClientResponse ToResponse(Client client) => new(
-        client.Id,
-        client.FullName,
-        client.Email,
-        client.Phone,
-        client.BirthDate,
-        client.Notes
-    );
 }
