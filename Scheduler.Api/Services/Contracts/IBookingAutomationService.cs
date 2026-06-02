@@ -4,7 +4,13 @@ namespace Scheduler.Api.Services.Contracts;
 
 public interface IBookingAutomationService
 {
-    Task<(bool ClientEmailSent, bool ProfessionalEmailSent, bool CalendarCreated)> ProcessAsync(
+    Task<(
+        bool ClientEmailSent,
+        bool ProfessionalEmailSent,
+        bool ClientWhatsAppSent,
+        bool ProfessionalWhatsAppSent,
+        bool CalendarCreated
+    )> ProcessAsync(
         User professional,
         UserSetting? userSetting,
         Client client,

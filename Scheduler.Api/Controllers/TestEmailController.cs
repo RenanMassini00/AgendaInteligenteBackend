@@ -26,11 +26,15 @@ public class TestEmailController : ControllerBase
             </div>
             """;
 
-        var sent = await _emailService.SendAsync(to, "Teste de e-mail - Massini Labs", html);
+        var sent = await _emailService.SendAsync(
+            to,
+            "Teste de e-mail - Massini Labs",
+            html
+        );
 
         if (!sent)
         {
-            return StatusCode(500, new ApiMessage("Falha ao enviar o e-mail de teste. Veja o log da API."));
+            return StatusCode(500, new ApiMessage("Falha ao enviar o e-mail de teste."));
         }
 
         return Ok(new ApiMessage("E-mail de teste enviado com sucesso."));

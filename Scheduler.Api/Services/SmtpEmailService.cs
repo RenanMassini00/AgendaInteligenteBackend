@@ -11,26 +11,29 @@ public class SmtpEmailService : IEmailService
 {
     private readonly EmailOptions _options;
     private readonly ILogger<SmtpEmailService> _logger;
+    private readonly IWebHostEnvironment _environment;
 
     public SmtpEmailService(
         IOptions<EmailOptions> options,
-        ILogger<SmtpEmailService> logger)
+        ILogger<SmtpEmailService> logger,
+        IWebHostEnvironment environment)
     {
         _options = options.Value;
         _logger = logger;
+        _environment = environment;
     }
 
     public async Task<bool> SendAsync(string? toEmail, string subject, string htmlBody)
     {
         if (!_options.Enabled)
         {
-            _logger.LogWarning("Envio de e-mail desabilitado.");
+            _logger.LogWarning("Email:Enabled está false.");
             return false;
         }
 
         if (string.IsNullOrWhiteSpace(toEmail))
         {
-            _logger.LogWarning("Destinatário de e-mail não informado.");
+            _logger.LogWarning("Destinatário não informado. Subject: {Subject}", subject);
             return false;
         }
 
@@ -40,21 +43,31 @@ public class SmtpEmailService : IEmailService
             message.From.Add(new MailboxAddress(_options.FromName, _options.FromEmail));
             message.To.Add(MailboxAddress.Parse(toEmail.Trim()));
             message.Subject = subject;
-
-            var bodyBuilder = new BodyBuilder
-            {
-                HtmlBody = htmlBody
-            };
-
-            message.Body = bodyBuilder.ToMessageBody();
+            message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
 
             using var client = new SmtpClient();
 
-            await client.ConnectAsync(
+            client.CheckCertificateRevocation = false;
+
+            if (_environment.IsDevelopment())
+            {
+                client.ServerCertificateValidationCallback = (_, _, _, _) => true;
+            }
+
+            var secureOption = _options.UseSsl
+                ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTls;
+
+            _logger.LogInformation(
+                "Tentando enviar e-mail. Host: {Host}, Port: {Port}, UseSsl: {UseSsl}, Username: {Username}, ToEmail: {ToEmail}",
                 _options.Host,
                 _options.Port,
-                SecureSocketOptions.SslOnConnect
+                _options.UseSsl,
+                _options.Username,
+                toEmail
             );
+
+            await client.ConnectAsync(_options.Host, _options.Port, secureOption);
 
             if (!string.IsNullOrWhiteSpace(_options.Username))
             {
@@ -64,12 +77,12 @@ public class SmtpEmailService : IEmailService
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
 
-            _logger.LogInformation("E-mail enviado com sucesso para {Email}.", toEmail);
+            _logger.LogInformation("E-mail enviado com sucesso para {ToEmail}.", toEmail);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao enviar e-mail para {Email}.", toEmail);
+            _logger.LogError(ex, "Erro ao enviar e-mail para {ToEmail}.", toEmail);
             return false;
         }
     }

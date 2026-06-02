@@ -28,6 +28,12 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<WhatsAppMetaOptions>(
+    builder.Configuration.GetSection("WhatsAppMeta")
+);
+
+builder.Services.AddHttpClient<IWhatsAppService, MetaWhatsAppService>();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 0)));

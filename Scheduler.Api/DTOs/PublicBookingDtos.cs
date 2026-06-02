@@ -66,6 +66,8 @@ public record PublicBookingSuccessResponse(
     string? BusinessName,
     bool ClientEmailSent,
     bool ProfessionalEmailSent,
+    bool ClientWhatsAppSent,
+    bool ProfessionalWhatsAppSent,
     bool CalendarCreated,
     string Message
 );

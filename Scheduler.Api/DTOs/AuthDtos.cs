@@ -38,8 +38,12 @@ public record UserResponse(
     ulong? ProfessionalUserId,
     ulong? ClientId,
     bool HasAppointmentsModule,
-    bool HasCatalogModule
+    bool HasCatalogModule,
+    string ThemeMode,
+    string AccentColor,
+    string? LogoUrl
 );
+
 public record LoginResponse(
     string Token,
     UserResponse User

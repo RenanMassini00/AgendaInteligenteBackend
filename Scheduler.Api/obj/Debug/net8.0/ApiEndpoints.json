@@ -108,6 +108,57 @@
     ]
   },
   {
+    "ContainingType": "Scheduler.Api.Controllers.AdminSettingsController",
+    "Method": "GetUsers",
+    "RelativePath": "api/admin/settings/users",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[Scheduler.Api.DTOs.AdminBrandingUserResponse, Scheduler.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.AdminSettingsController",
+    "Method": "UpdateUserBranding",
+    "RelativePath": "api/admin/settings/users/{userId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "Scheduler.Api.DTOs.AdminBrandingUpdateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "Scheduler.Api.Controllers.AdminUsersController",
     "Method": "GetAll",
     "RelativePath": "api/admin/users",
@@ -735,6 +786,32 @@
     ]
   },
   {
+    "ContainingType": "Scheduler.Api.Controllers.CatalogDashboardController",
+    "Method": "Get",
+    "RelativePath": "api/catalog-dashboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.CatalogDashboardResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "Scheduler.Api.Controllers.ClientPortalController",
     "Method": "GetAppointments",
     "RelativePath": "api/client/appointments",
@@ -869,7 +946,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[Scheduler.Api.DTOs.ClientResponse, Scheduler.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[Scheduler.Api.DTOs.ClientResponse, Scheduler.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -891,11 +968,16 @@
         "Name": "request",
         "Type": "Scheduler.Api.DTOs.ClientCreateRequest",
         "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "Scheduler.Api.DTOs.ClientResponse",
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -952,7 +1034,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "Scheduler.Api.DTOs.ClientResponse",
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -1051,6 +1133,187 @@
     ]
   },
   {
+    "ContainingType": "Scheduler.Api.Controllers.ProductsController",
+    "Method": "GetAll",
+    "RelativePath": "api/products",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[Scheduler.Api.DTOs.ProductResponse, Scheduler.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.ProductsController",
+    "Method": "Create",
+    "RelativePath": "api/products",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Scheduler.Api.DTOs.ProductCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.ProductsController",
+    "Method": "GetById",
+    "RelativePath": "api/products/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.UInt64",
+        "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ProductResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.ProductsController",
+    "Method": "Update",
+    "RelativePath": "api/products/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.UInt64",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "Scheduler.Api.DTOs.ProductUpdateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.ProductsController",
+    "Method": "Delete",
+    "RelativePath": "api/products/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.UInt64",
+        "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.ProductsController",
+    "Method": "RegisterSale",
+    "RelativePath": "api/products/{id}/register-sale",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.UInt64",
+        "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": false
+      },
+      {
+        "Name": "request",
+        "Type": "Scheduler.Api.DTOs.ProductSaleRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "Scheduler.Api.Controllers.ProfileController",
     "Method": "Get",
     "RelativePath": "api/profile",
@@ -1077,6 +1340,32 @@
     ]
   },
   {
+    "ContainingType": "Scheduler.Api.Controllers.PublicCatalogController",
+    "Method": "GetBySlug",
+    "RelativePath": "api/public/catalog/{slug}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "slug",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.PublicCatalogResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "Scheduler.Api.Controllers.PublicBookingController",
     "Method": "GetProfessional",
     "RelativePath": "api/public/professionals/{slug}",
@@ -1093,6 +1382,37 @@
     "ReturnTypes": [
       {
         "Type": "Scheduler.Api.DTOs.PublicBookingProfessionalResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.PublicBookingController",
+    "Method": "Create",
+    "RelativePath": "api/public/professionals/{slug}/appointments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "slug",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "Scheduler.Api.DTOs.PublicBookAppointmentRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.PublicBookingSuccessResponse",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -1331,27 +1651,48 @@
     ]
   },
   {
-    "ContainingType": "Scheduler.Api.Controllers.SettingsController",
-    "Method": "Update",
-    "RelativePath": "api/settings",
-    "HttpMethod": "PUT",
+    "ContainingType": "Scheduler.Api.Controllers.TestEmailController",
+    "Method": "Send",
+    "RelativePath": "api/test/email",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "userId",
-        "Type": "System.UInt64",
+        "Name": "to",
+        "Type": "System.String",
         "IsRequired": false
-      },
-      {
-        "Name": "request",
-        "Type": "Scheduler.Api.DTOs.SettingsUpdateRequest",
-        "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "Scheduler.Api.DTOs.SettingsResponse",
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.TestWhatsAppController",
+    "Method": "Send",
+    "RelativePath": "api/test/whatsapp",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "phone",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
         "MediaTypes": [
           "text/plain",
           "application/json",

@@ -63,6 +63,11 @@ public class ProductsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ApiMessage>> Create([FromBody] ProductCreateRequest request)
     {
+        if (request.UserId == 0)
+        {
+            return BadRequest(new ApiMessage("Usuário inválido."));
+        }
+
         var validationError = ValidateRequest(
             request.Name,
             request.Price,
@@ -76,30 +81,39 @@ public class ProductsController : ControllerBase
             return validationError;
         }
 
-        var product = new Product
+        try
         {
-            UserId = request.UserId,
-            Name = request.Name.Trim(),
-            Category = string.IsNullOrWhiteSpace(request.Category) ? null : request.Category.Trim(),
-            Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
-            Price = request.Price,
-            OriginalPrice = request.OriginalPrice,
-            PromotionalPrice = request.PromotionalPrice,
-            ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim(),
-            StockQuantity = request.StockQuantity,
-            SoldQuantity = 0,
-            IsActive = true,
-            IsSold = request.StockQuantity == 0,
-            IsFeatured = request.IsFeatured,
-            WhatsAppMessage = string.IsNullOrWhiteSpace(request.WhatsAppMessage) ? null : request.WhatsAppMessage.Trim(),
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
-        };
+            var product = new Product
+            {
+                UserId = request.UserId,
+                Name = request.Name.Trim(),
+                Category = string.IsNullOrWhiteSpace(request.Category) ? null : request.Category.Trim(),
+                Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
+                Price = request.Price,
+                OriginalPrice = request.OriginalPrice,
+                PromotionalPrice = request.PromotionalPrice,
+                ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim(),
+                StockQuantity = request.StockQuantity,
+                SoldQuantity = 0,
+                IsActive = true,
+                IsSold = request.StockQuantity == 0,
+                IsFeatured = request.IsFeatured,
+                WhatsAppMessage = string.IsNullOrWhiteSpace(request.WhatsAppMessage) ? null : request.WhatsAppMessage.Trim(),
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
 
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
+            _context.Products.Add(product);
+            await _context.SaveChangesAsync();
 
-        return Ok(new ApiMessage("Produto cadastrado com sucesso."));
+            return Ok(new ApiMessage("Produto cadastrado com sucesso."));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiMessage(
+                $"Erro ao cadastrar produto: {ex.InnerException?.Message ?? ex.Message}"
+            ));
+        }
     }
 
     [HttpPut("{id}")]

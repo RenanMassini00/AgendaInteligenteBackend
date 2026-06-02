@@ -28,6 +28,10 @@ public class ProfileController : ControllerBase
             return NotFound(new ApiMessage("Usuário não encontrado."));
         }
 
+        var userSetting = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == user.Id);
+
         return Ok(new UserResponse(
             Id: user.Id,
             FullName: user.FullName,
@@ -41,7 +45,10 @@ public class ProfileController : ControllerBase
             ProfessionalUserId: user.ProfessionalUserId,
             ClientId: user.ClientId,
             HasAppointmentsModule: user.HasAppointmentsModule,
-            HasCatalogModule: user.HasCatalogModule
+            HasCatalogModule: user.HasCatalogModule,
+            ThemeMode: userSetting?.ThemeMode ?? "light",
+            AccentColor: userSetting?.AccentColor ?? "azul",
+            LogoUrl: userSetting?.LogoUrl
         ));
     }
 
