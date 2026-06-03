@@ -109,3 +109,15 @@ C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\D
 C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\Scheduler.Api.sourcelink.json
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\BCrypt.Net-Core.dll
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\BouncyCastle.Crypto.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Google.Apis.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Google.Apis.Auth.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Google.Apis.Calendar.v3.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Google.Apis.Core.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\MailKit.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\MimeKit.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\System.Management.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
