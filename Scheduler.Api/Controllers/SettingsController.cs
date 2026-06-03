@@ -43,13 +43,13 @@ public class SettingsController : ControllerBase
             settings = new UserSetting
             {
                 UserId = userId,
-                Theme = "light",
+                ThemeMode = "light",
                 AccentColor = "blue",
-                CompanyLogoUrl = null,
+                LogoUrl = null,
                 LanguageCode = "pt-BR",
                 ReminderMinutes = 60,
                 EmailNotifications = false,
-                WhatsappNotifications = true,
+                WhatsAppNotifications = true,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -60,9 +60,9 @@ public class SettingsController : ControllerBase
 
         return Ok(new SettingsResponse(
             settings.UserId,
-            settings.Theme,
+            settings.ThemeMode,
             settings.AccentColor,
-            settings.CompanyLogoUrl
+            settings.LogoUrl
         ));
     }
 }

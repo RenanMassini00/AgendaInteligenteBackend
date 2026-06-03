@@ -58,9 +58,9 @@ public class AdminSettingsController : ControllerBase
                 user.FullName,
                 user.BusinessName,
                 user.Email,
-                userSetting?.Theme ?? "light",
+                userSetting?.ThemeMode ?? "light",
                 userSetting?.AccentColor ?? "blue",
-                userSetting?.CompanyLogoUrl
+                userSetting?.LogoUrl
             );
         }).ToList();
 
@@ -101,15 +101,15 @@ public class AdminSettingsController : ControllerBase
             settings = new UserSetting
             {
                 UserId = userId,
-                Theme = theme,
+                ThemeMode = theme,
                 AccentColor = accentColor,
-                CompanyLogoUrl = string.IsNullOrWhiteSpace(request.CompanyLogoUrl)
+                LogoUrl = string.IsNullOrWhiteSpace(request.CompanyLogoUrl)
                     ? null
                     : request.CompanyLogoUrl.Trim(),
                 LanguageCode = "pt-BR",
                 ReminderMinutes = 60,
                 EmailNotifications = false,
-                WhatsappNotifications = true,
+                WhatsAppNotifications = true,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -118,9 +118,9 @@ public class AdminSettingsController : ControllerBase
         }
         else
         {
-            settings.Theme = theme;
+            settings.ThemeMode = theme;
             settings.AccentColor = accentColor;
-            settings.CompanyLogoUrl = string.IsNullOrWhiteSpace(request.CompanyLogoUrl)
+            settings.LogoUrl = string.IsNullOrWhiteSpace(request.CompanyLogoUrl)
                 ? null
                 : request.CompanyLogoUrl.Trim();
             settings.UpdatedAt = DateTime.Now;

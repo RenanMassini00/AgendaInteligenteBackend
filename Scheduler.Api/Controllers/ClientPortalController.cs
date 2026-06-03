@@ -38,7 +38,10 @@ public class ClientPortalController : ControllerBase
             user.ProfessionalUserId,
             user.ClientId,
             user.HasAppointmentsModule,
-            user.HasCatalogModule
+            user.HasCatalogModule,
+            "light",
+            "blue",
+            null
         ));
     }
 

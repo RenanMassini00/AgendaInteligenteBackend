@@ -95,11 +95,11 @@ public class AuthController : ControllerBase
         _context.UserSettings.Add(new UserSetting
         {
             UserId = user.Id,
-            Theme = "light",
+            ThemeMode = "light",
             LanguageCode = "pt-BR",
             ReminderMinutes = 60,
             EmailNotifications = false,
-            WhatsappNotifications = true,
+            WhatsAppNotifications = true,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
         });
@@ -202,7 +202,10 @@ public class AuthController : ControllerBase
         ProfessionalUserId: user.ProfessionalUserId,
         ClientId: user.ClientId,
         HasAppointmentsModule: user.HasAppointmentsModule,
-        HasCatalogModule: user.HasCatalogModule
+        HasCatalogModule: user.HasCatalogModule,
+        ThemeMode: "light",
+        AccentColor: "blue",
+        LogoUrl: null
     );
 
     private static string GenerateSlug(string raw)
