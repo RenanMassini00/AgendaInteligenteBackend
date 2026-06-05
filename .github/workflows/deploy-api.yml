@@ -36,6 +36,9 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          timeout: 60s
+          command_timeout: 10m
           script: |
             docker pull renanmassini/agenda-api:latest
             docker rm -f agenda_api || true
