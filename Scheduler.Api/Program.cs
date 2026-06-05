@@ -22,7 +22,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Frontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173", "https://localhost:5173")
+            .WithOrigins(
+                "http://macroloapp.com.br:3000",
+                "http://2.25.147.236:3000"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
