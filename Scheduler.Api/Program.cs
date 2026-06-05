@@ -23,7 +23,7 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "http://macroloapp.com.br:3000",
+                "https://macroloapp.com.br",
                 "http://2.25.147.236:3000"
             )
             .AllowAnyHeader()
