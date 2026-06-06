@@ -1,0 +1,52 @@
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build e push da imagem da API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Scheduler.Api/Dockerfile
+          push: true
+          tags: renanmassini/agenda-api:latest
+
+      - name: Atualizar API na VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          timeout: 60s
+          command_timeout: 10m
+          script: |
+            docker pull renanmassini/agenda-api:latest
+            docker rm -f agenda_api || true
+            docker run -d \
+              --name agenda_api \
+              --restart always \
+              --network agenda-inteligente_agenda_network \
+              -p 5000:8080 \
+              -e ASPNETCORE_URLS=http://+:8080 \
+              -e "ConnectionStrings__DefaultConnection=server=mysql;port=3306;database=scheduler_db;user=root;password=Seigan2030@;TreatTinyAsBoolean=true;" \
+              renanmassini/agenda-api:latest
