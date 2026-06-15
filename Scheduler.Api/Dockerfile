@@ -15,6 +15,7 @@ WORKDIR /app
 EXPOSE 8080
 
 ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Development
 
 COPY --from=build /app/publish .
 

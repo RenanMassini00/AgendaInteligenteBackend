@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using Scheduler.Api.Options;
 using Scheduler.Api.Services.Contracts;
+using System.Security.Authentication;
 
 namespace Scheduler.Api.Services;
 
@@ -48,6 +49,7 @@ public class SmtpEmailService : IEmailService
             using var client = new SmtpClient();
 
             client.CheckCertificateRevocation = false;
+            client.SslProtocols = SslProtocols.Tls12;
 
             if (_environment.IsDevelopment())
             {
