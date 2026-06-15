@@ -1,15 +1,15 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj": {}
+    "C:\\Users\\massini913471\\Source\\Repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj": {
+    "C:\\Users\\massini913471\\Source\\Repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+        "projectUniqueName": "C:\\Users\\massini913471\\Source\\Repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
         "projectName": "Scheduler.Api",
-        "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+        "projectPath": "C:\\Users\\massini913471\\Source\\Repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
         "packagesPath": "C:\\Users\\massini913471\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\obj\\",
         "projectStyle": "PackageReference",
@@ -52,10 +52,6 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "BCrypt.Net-Core": {
-              "target": "Package",
-              "version": "[1.6.0, )"
-            },
             "Google.Apis.Auth": {
               "target": "Package",
               "version": "[1.74.0, )"

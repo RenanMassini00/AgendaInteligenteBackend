@@ -4833,6 +4833,18 @@
           },
           "hasCatalogModule": {
             "type": "boolean"
+          },
+          "themeMode": {
+            "type": "string",
+            "nullable": true
+          },
+          "accentColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "logoUrl": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
