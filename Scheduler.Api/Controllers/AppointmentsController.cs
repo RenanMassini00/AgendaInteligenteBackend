@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
 using Scheduler.Api.Entities;
+using Scheduler.Api.Services.Contracts;
 using Scheduler.Api.Services.Notifications;
 using System.Globalization;
 
@@ -15,13 +16,16 @@ public class AppointmentsController : ControllerBase
     private static readonly string[] ValidStatuses = ["scheduled", "confirmed", "completed", "cancelled", "no_show"];
     private readonly AppDbContext _context;
     private readonly IAppointmentNotificationService _notificationService;
+    private readonly IBookingAutomationService _bookingAutomationService;
 
     public AppointmentsController(
         AppDbContext context,
-        IAppointmentNotificationService notificationService)
+        IAppointmentNotificationService notificationService,
+        IBookingAutomationService bookingAutomationService)
     {
         _context = context;
         _notificationService = notificationService;
+        _bookingAutomationService = bookingAutomationService;
     }
 
     [HttpGet]
@@ -82,6 +86,13 @@ public class AppointmentsController : ControllerBase
         var professional = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive);
         if (professional is null) return BadRequest(new ApiMessage("Profissional inválido."));
 
+        var registeredClientEmail = await GetRegisteredClientEmailAsync(client.Id, userId);
+        if (!string.IsNullOrWhiteSpace(registeredClientEmail))
+        {
+            client.Email = registeredClientEmail.Trim();
+            client.UpdatedAt = DateTime.Now;
+        }
+
         var endTime = startTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
         var hasConflict = await _context.Appointments.AnyAsync(x =>
@@ -124,8 +135,13 @@ public class AppointmentsController : ControllerBase
         });
         await _context.SaveChangesAsync();
 
-        await _notificationService.NotifyCreatedAsync(
+        var userSetting = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == professional.Id);
+
+        await _bookingAutomationService.ProcessAsync(
             professional,
+            userSetting,
             client,
             service,
             appointment);
@@ -308,6 +324,19 @@ public class AppointmentsController : ControllerBase
         }
 
         return Ok(new ApiMessage("Agendamento cancelado com sucesso."));
+    }
+
+    private async Task<string?> GetRegisteredClientEmailAsync(ulong clientId, ulong professionalUserId)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Where(x =>
+                x.Role == "client" &&
+                x.IsActive &&
+                x.ClientId == clientId &&
+                x.ProfessionalUserId == professionalUserId)
+            .Select(x => x.Email)
+            .FirstOrDefaultAsync();
     }
 
     private static AppointmentResponse ToResponse(Appointment appointment) => new(

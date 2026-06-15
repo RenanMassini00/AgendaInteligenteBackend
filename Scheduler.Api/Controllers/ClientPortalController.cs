@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
 using Scheduler.Api.Entities;
+using Scheduler.Api.Services.Contracts;
 using Scheduler.Api.Utils;
 using System.Globalization;
 
@@ -13,10 +14,14 @@ namespace Scheduler.Api.Controllers;
 public class ClientPortalController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IBookingAutomationService _bookingAutomationService;
 
-    public ClientPortalController(AppDbContext context)
+    public ClientPortalController(
+        AppDbContext context,
+        IBookingAutomationService bookingAutomationService)
     {
         _context = context;
+        _bookingAutomationService = bookingAutomationService;
     }
 
     [HttpGet("me")]
@@ -113,13 +118,32 @@ public class ClientPortalController : ControllerBase
         if (request.ProfessionalUserId != user.ProfessionalUserId)
             return BadRequest(new ApiMessage("Profissional inválido para este cliente."));
 
+        var professional = await _context.Users.FirstOrDefaultAsync(x =>
+            x.Id == user.ProfessionalUserId &&
+            x.Role == "professional" &&
+            x.IsActive);
+
+        if (professional is null)
+            return BadRequest(new ApiMessage("Profissional inválido."));
+
+        var client = await _context.Clients.FirstOrDefaultAsync(x =>
+            x.Id == user.ClientId.Value &&
+            x.UserId == professional.Id &&
+            x.IsActive);
+
+        if (client is null)
+            return BadRequest(new ApiMessage("Cliente inválido."));
+
+        client.Email = user.Email.Trim();
+        client.UpdatedAt = DateTime.Now;
+
         if (!DateTime.TryParse(request.Date, out var date))
             return BadRequest(new ApiMessage("Data inválida. Use yyyy-MM-dd."));
 
         if (!TimeSpan.TryParse(request.Time, out var startTime))
             return BadRequest(new ApiMessage("Horário inválido. Use HH:mm."));
 
-        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == request.ServiceId && x.UserId == user.ProfessionalUserId && x.IsActive);
+        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == request.ServiceId && x.UserId == professional.Id && x.IsActive);
         if (service is null) return BadRequest(new ApiMessage("Serviço inválido."));
 
         var endTime = startTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
@@ -163,6 +187,17 @@ public class ClientPortalController : ControllerBase
             CreatedAt = DateTime.Now
         });
         await _context.SaveChangesAsync();
+
+        var userSetting = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == professional.Id);
+
+        await _bookingAutomationService.ProcessAsync(
+            professional,
+            userSetting,
+            client,
+            service,
+            appointment);
 
         var created = await _context.Appointments
             .AsNoTracking()

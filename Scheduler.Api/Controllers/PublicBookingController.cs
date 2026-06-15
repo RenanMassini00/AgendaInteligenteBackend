@@ -229,8 +229,12 @@ public class PublicBookingController : ControllerBase
         }
         else
         {
+            var registeredClientEmail = await GetRegisteredClientEmailAsync(client.Id, professional.Id);
+
             client.FullName = request.FullName.Trim();
-            client.Email = request.Email.Trim();
+            client.Email = string.IsNullOrWhiteSpace(registeredClientEmail)
+                ? request.Email.Trim()
+                : registeredClientEmail.Trim();
             client.Phone = request.Phone.Trim();
 
             if (!string.IsNullOrWhiteSpace(request.Notes))
@@ -508,6 +512,19 @@ public class PublicBookingController : ControllerBase
     private static string NormalizePhone(string? phone)
     {
         return new string((phone ?? string.Empty).Where(char.IsDigit).ToArray());
+    }
+
+    private async Task<string?> GetRegisteredClientEmailAsync(ulong clientId, ulong professionalUserId)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Where(x =>
+                x.Role == "client" &&
+                x.IsActive &&
+                x.ClientId == clientId &&
+                x.ProfessionalUserId == professionalUserId)
+            .Select(x => x.Email)
+            .FirstOrDefaultAsync();
     }
 
     private sealed record AvailabilityWindow(TimeSpan Start, TimeSpan End);
