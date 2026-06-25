@@ -1,7 +1,7 @@
 [
   {
-    "ContainingType": "Program\u002B\u003C\u003Ec",
-    "Method": "\u003C\u003CMain\u003E$\u003Eb__0_3",
+    "ContainingType": "Program\u002B\u003C\u003Ec__DisplayClass0_0",
+    "Method": "\u003C\u003CMain\u003E$\u003Eb__5",
     "RelativePath": "",
     "HttpMethod": "GET",
     "IsController": false,
@@ -1480,6 +1480,119 @@
     "ReturnTypes": [
       {
         "Type": "Scheduler.Api.DTOs.PublicBookingCreatedResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.PushNotificationsController",
+    "Method": "GetPublicKey",
+    "RelativePath": "api/push/public-key",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.PushPublicKeyResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.PushNotificationsController",
+    "Method": "Register",
+    "RelativePath": "api/push/subscriptions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": false
+      },
+      {
+        "Name": "request",
+        "Type": "Scheduler.Api.DTOs.PushSubscriptionRegisterRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.PushNotificationsController",
+    "Method": "Remove",
+    "RelativePath": "api/push/subscriptions",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": false
+      },
+      {
+        "Name": "request",
+        "Type": "Scheduler.Api.DTOs.PushSubscriptionRemoveRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Scheduler.Api.Controllers.PushNotificationsController",
+    "Method": "Test",
+    "RelativePath": "api/push/test",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.UInt64",
+        "IsRequired": false
+      },
+      {
+        "Name": "request",
+        "Type": "Scheduler.Api.DTOs.PushTestRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Scheduler.Api.DTOs.ApiMessage",
         "MediaTypes": [
           "text/plain",
           "application/json",

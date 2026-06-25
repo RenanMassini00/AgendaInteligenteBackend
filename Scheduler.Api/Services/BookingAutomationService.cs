@@ -9,17 +9,20 @@ public class BookingAutomationService : IBookingAutomationService
     private readonly IEmailService _emailService;
     private readonly IGoogleCalendarService _googleCalendarService;
     private readonly IWhatsAppService _whatsAppService;
+    private readonly IPushNotificationService _pushNotificationService;
     private readonly ILogger<BookingAutomationService> _logger;
 
     public BookingAutomationService(
         IEmailService emailService,
         IGoogleCalendarService googleCalendarService,
         IWhatsAppService whatsAppService,
+        IPushNotificationService pushNotificationService,
         ILogger<BookingAutomationService> logger)
     {
         _emailService = emailService;
         _googleCalendarService = googleCalendarService;
         _whatsAppService = whatsAppService;
+        _pushNotificationService = pushNotificationService;
         _logger = logger;
     }
 
@@ -28,6 +31,8 @@ public class BookingAutomationService : IBookingAutomationService
         bool ProfessionalEmailSent,
         bool ClientWhatsAppSent,
         bool ProfessionalWhatsAppSent,
+        bool ClientPushSent,
+        bool ProfessionalPushSent,
         bool CalendarCreated
     )> ProcessAsync(
         User professional,
@@ -171,6 +176,14 @@ public class BookingAutomationService : IBookingAutomationService
             """
         );
 
+        var (clientPushSent, professionalPushSent) =
+            await _pushNotificationService.SendAppointmentCreatedAsync(
+                professional,
+                client,
+                service,
+                appointment
+            );
+
         var calendarCreated = await _googleCalendarService.CreateAppointmentEventAsync(
             professional,
             userSetting,
@@ -184,6 +197,8 @@ public class BookingAutomationService : IBookingAutomationService
             professionalEmailSent,
             clientWhatsAppSent,
             professionalWhatsAppSent,
+            clientPushSent,
+            professionalPushSent,
             calendarCreated
         );
     }

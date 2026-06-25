@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
@@ -8,6 +9,7 @@ namespace Scheduler.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[EnableRateLimiting("Auth")]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;

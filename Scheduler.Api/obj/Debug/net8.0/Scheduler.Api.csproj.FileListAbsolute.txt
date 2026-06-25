@@ -6,7 +6,6 @@ C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\D
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\Scheduler.Api.csproj.CoreCompileInputs.cache
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\Scheduler.Api.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\Scheduler.Api.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\appsettings.json
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Scheduler.Api.staticwebassets.endpoints.json
 C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Scheduler.Api.exe
@@ -119,3 +118,5 @@ C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\D
 C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
 C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll
 C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\WebPush.dll
+C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

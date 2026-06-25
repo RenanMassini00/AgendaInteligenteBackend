@@ -9,6 +9,8 @@ public interface IBookingAutomationService
         bool ProfessionalEmailSent,
         bool ClientWhatsAppSent,
         bool ProfessionalWhatsAppSent,
+        bool ClientPushSent,
+        bool ProfessionalPushSent,
         bool CalendarCreated
     )> ProcessAsync(
         User professional,

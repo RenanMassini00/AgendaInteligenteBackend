@@ -4,5 +4,12 @@
 **/obj
 **/.git
 **/.gitignore
+**/.env
+**/.env.*
+**/appsettings.Development.json
+**/Configs/*.json
+**/*.pem
+**/*.pfx
+**/*.key
 Dockerfile
 README.md

@@ -293,6 +293,8 @@ public class PublicBookingController : ControllerBase
             automationResult.ProfessionalEmailSent,
             automationResult.ClientWhatsAppSent,
             automationResult.ProfessionalWhatsAppSent,
+            automationResult.ClientPushSent,
+            automationResult.ProfessionalPushSent,
             automationResult.CalendarCreated,
             "Agendamento realizado com sucesso."
         ));

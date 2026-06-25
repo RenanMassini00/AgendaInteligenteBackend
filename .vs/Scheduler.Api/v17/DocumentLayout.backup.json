@@ -122,12 +122,8 @@
       "DocumentGroups": [
         {
           "DockedHeight": 306,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 3,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
@@ -138,8 +134,7 @@
               "RelativeToolTip": "Scheduler.Api\\DTOs\\CommonDtos.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-28T18:08:57.319Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-28T18:08:57.319Z"
             },
             {
               "$type": "Document",
@@ -173,7 +168,7 @@
               "RelativeDocumentMoniker": "Scheduler.Api\\appsettings.Development.json",
               "ToolTip": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\appsettings.Development.json",
               "RelativeToolTip": "Scheduler.Api\\appsettings.Development.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAABLAAAAAAAAAA==",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAAAsAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2026-04-30T20:53:56.851Z",
               "EditorCaption": ""
@@ -344,7 +339,8 @@
               "RelativeToolTip": "Scheduler.Api\\Options\\WhatsAppMetaOptions.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-24T15:49:56.16Z"
+              "WhenOpened": "2026-05-24T15:49:56.16Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -465,6 +461,10 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-20T20:24:53.72Z"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
             }
           ]
         }

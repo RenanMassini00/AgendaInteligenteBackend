@@ -799,6 +799,18 @@
             "rid": "win"
           }
         }
+      },
+      "WebPush/1.0.13": {
+        "type": "package",
+        "dependencies": {
+          "Portable.BouncyCastle": "1.9.0"
+        },
+        "compile": {
+          "lib/net8.0/WebPush.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/WebPush.dll": {}
+        }
       }
     }
   },
@@ -2244,6 +2256,23 @@
         "system.security.cryptography.pkcs.nuspec",
         "useSharedDesignerContext.txt"
       ]
+    },
+    "WebPush/1.0.13": {
+      "sha512": "Qyypsk6j+GqncCa/IgbmZLnL7DxqKFGz3jIdquGSLeiD3NtN+HPnIFBMwIJHffDU9ZEztTkaMMYxvW3PJxJL7Q==",
+      "type": "package",
+      "path": "webpush/1.0.13",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net10.0/WebPush.dll",
+        "lib/net48/WebPush.dll",
+        "lib/net8.0/WebPush.dll",
+        "lib/net9.0/WebPush.dll",
+        "lib/netstandard2.1/WebPush.dll",
+        "webpush.1.0.13.nupkg.sha512",
+        "webpush.nuspec"
+      ]
     }
   },
   "projectFileDependencyGroups": {
@@ -2255,7 +2284,8 @@
       "MimeKit >= 4.16.0",
       "Pomelo.EntityFrameworkCore.MySql >= 8.0.2",
       "Portable.BouncyCastle >= 1.9.0",
-      "Swashbuckle.AspNetCore >= 6.6.2"
+      "Swashbuckle.AspNetCore >= 6.6.2",
+      "WebPush >= 1.0.13"
     ]
   },
   "packageFolders": {
@@ -2343,6 +2373,10 @@
           "Swashbuckle.AspNetCore": {
             "target": "Package",
             "version": "[6.6.2, )"
+          },
+          "WebPush": {
+            "target": "Package",
+            "version": "[1.0.13, )"
           }
         },
         "imports": [
@@ -2359,19 +2393,19 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.22, 8.0.22]"
+            "version": "[8.0.28, 8.0.28]"
           },
           {
             "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[8.0.22, 8.0.22]"
+            "version": "[8.0.28, 8.0.28]"
           },
           {
             "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.22, 8.0.22]"
+            "version": "[8.0.28, 8.0.28]"
           },
           {
             "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[8.0.22, 8.0.22]"
+            "version": "[8.0.28, 8.0.28]"
           }
         ],
         "frameworkReferences": {
@@ -2382,7 +2416,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.109/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(, 8.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(, 8.0.32767]",

@@ -21,6 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<BillingRecord> BillingRecords => Set<BillingRecord>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<WebPushSubscription> PushSubscriptions => Set<WebPushSubscription>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -36,6 +37,27 @@ public class AppDbContext : DbContext
             .WithMany(x => x.UserSettings)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<WebPushSubscription>(entity =>
+        {
+            entity.HasIndex(x => x.EndpointHash)
+                .IsUnique()
+                .HasDatabaseName("uq_push_subscriptions_endpoint_hash");
+
+            entity.HasIndex(x => new { x.UserId, x.IsActive })
+                .HasDatabaseName("idx_push_subscriptions_user_active");
+
+            entity.Property(x => x.EndpointHash).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.P256dh).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.Auth).HasMaxLength(255).IsRequired();
+            entity.Property(x => x.UserAgent).HasMaxLength(500);
+            entity.Property(x => x.DeviceName).HasMaxLength(120);
+
+            entity.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<Client>(entity =>
         {
