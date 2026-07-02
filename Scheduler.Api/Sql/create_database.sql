@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS user_settings (
     whatsapp_notifications TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    accent_color VARCHAR(20) NOT NULL DEFAULT 'blue',
+    company_logo_url LONGTEXT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_user_settings_user_id (user_id),
     CONSTRAINT fk_user_settings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

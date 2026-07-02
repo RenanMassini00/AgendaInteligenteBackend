@@ -27,8 +27,15 @@ public record PublicBookingProfessionalResponse(
     string DisplayName,
     string Subtitle,
     string PublicSlug,
-    List<PublicBookingServiceResponse> Services
-);
+    List<PublicBookingServiceResponse> Services,
+    string ThemeMode,
+    string AccentColor,
+    string? LogoUrl
+)
+{
+    public string Theme => ThemeMode;
+    public string? CompanyLogoUrl => LogoUrl;
+}
 
 public record PublicBookingAvailableSlotsResponse(
     string Date,

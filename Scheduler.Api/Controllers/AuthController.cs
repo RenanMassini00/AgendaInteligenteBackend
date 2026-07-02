@@ -39,7 +39,7 @@ public class AuthController : ControllerBase
         var normalizedRole = NormalizeRole(user.Role);
         var token = $"dev-token-{normalizedRole}-user-{user.Id}";
 
-        return Ok(new LoginResponse(token, ToUserResponse(user)));
+        return Ok(new LoginResponse(token, await ToUserResponseAsync(user)));
     }
 
     [HttpPost("register-professional")]
@@ -98,6 +98,8 @@ public class AuthController : ControllerBase
         {
             UserId = user.Id,
             ThemeMode = "light",
+            AccentColor = "blue",
+            LogoUrl = null,
             LanguageCode = "pt-BR",
             ReminderMinutes = 60,
             EmailNotifications = false,
@@ -110,7 +112,7 @@ public class AuthController : ControllerBase
 
         return Ok(new LoginResponse(
             $"dev-token-professional-user-{user.Id}",
-            ToUserResponse(user)
+            await ToUserResponseAsync(user)
         ));
     }
 
@@ -163,7 +165,7 @@ public class AuthController : ControllerBase
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return Ok(new LoginResponse($"dev-token-client-user-{user.Id}", ToUserResponse(user)));
+        return Ok(new LoginResponse($"dev-token-client-user-{user.Id}", await ToUserResponseAsync(user)));
     }
 
     [HttpGet("me")]
@@ -175,7 +177,7 @@ public class AuthController : ControllerBase
 
         if (user is null) return NotFound(new ApiMessage("Usuário não encontrado."));
 
-        return Ok(ToUserResponse(user));
+        return Ok(await ToUserResponseAsync(user));
     }
 
     private static string NormalizeRole(string role)
@@ -191,24 +193,36 @@ public class AuthController : ControllerBase
         };
     }
 
-    private static UserResponse ToUserResponse(User user) => new(
-        Id: user.Id,
-        FullName: user.FullName,
-        BusinessName: user.BusinessName,
-        Email: user.Email,
-        Phone: user.Phone,
-        Specialty: user.Specialty,
-        Timezone: user.Timezone,
-        Role: NormalizeRole(user.Role),
-        PublicSlug: user.PublicSlug,
-        ProfessionalUserId: user.ProfessionalUserId,
-        ClientId: user.ClientId,
-        HasAppointmentsModule: user.HasAppointmentsModule,
-        HasCatalogModule: user.HasCatalogModule,
-        ThemeMode: "light",
-        AccentColor: "blue",
-        LogoUrl: null
-    );
+    private async Task<UserResponse> ToUserResponseAsync(User user)
+    {
+        var normalizedRole = NormalizeRole(user.Role);
+        var brandingUserId = normalizedRole == "client" && user.ProfessionalUserId.HasValue
+            ? user.ProfessionalUserId.Value
+            : user.Id;
+
+        var settings = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == brandingUserId);
+
+        return new UserResponse(
+            Id: user.Id,
+            FullName: user.FullName,
+            BusinessName: user.BusinessName,
+            Email: user.Email,
+            Phone: user.Phone,
+            Specialty: user.Specialty,
+            Timezone: user.Timezone,
+            Role: normalizedRole,
+            PublicSlug: user.PublicSlug,
+            ProfessionalUserId: user.ProfessionalUserId,
+            ClientId: user.ClientId,
+            HasAppointmentsModule: user.HasAppointmentsModule,
+            HasCatalogModule: user.HasCatalogModule,
+            ThemeMode: settings?.ThemeMode ?? "light",
+            AccentColor: settings?.AccentColor ?? "blue",
+            LogoUrl: settings?.LogoUrl
+        );
+    }
 
     private static string GenerateSlug(string raw)
     {

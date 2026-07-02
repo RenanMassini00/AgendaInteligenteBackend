@@ -83,6 +83,8 @@ public class PublicCatalogController : ControllerBase
             );
         }).ToList();
 
+        var branding = await GetBrandingAsync(user.Id);
+
         return Ok(new PublicCatalogResponse(
             user.Id,
             user.FullName,
@@ -90,7 +92,10 @@ public class PublicCatalogController : ControllerBase
             user.Specialty,
             user.PublicSlug,
             user.Phone,
-            productResponses
+            productResponses,
+            branding.ThemeMode,
+            branding.AccentColor,
+            branding.LogoUrl
         ));
     }
 
@@ -100,4 +105,19 @@ public class PublicCatalogController : ControllerBase
             ? product.PromotionalPrice.Value
             : product.Price;
     }
+
+    private async Task<BrandingSnapshot> GetBrandingAsync(ulong userId)
+    {
+        var settings = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+
+        return new BrandingSnapshot(
+            settings?.ThemeMode ?? "light",
+            settings?.AccentColor ?? "blue",
+            settings?.LogoUrl
+        );
+    }
+
+    private sealed record BrandingSnapshot(string ThemeMode, string AccentColor, string? LogoUrl);
 }

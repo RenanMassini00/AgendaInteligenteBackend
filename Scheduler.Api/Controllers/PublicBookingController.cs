@@ -42,6 +42,8 @@ public class PublicBookingController : ControllerBase
             .OrderBy(x => x.Name)
             .ToListAsync();
 
+        var branding = await GetBrandingAsync(professional.Id);
+
         var response = new PublicBookingProfessionalResponse(
             professional.BusinessName ?? professional.FullName,
             professional.Specialty ?? "Agendamento online",
@@ -54,7 +56,10 @@ public class PublicBookingController : ControllerBase
                 x.DurationMinutes < 60 ? $"{x.DurationMinutes} min" : $"{x.DurationMinutes / 60}h",
                 x.Price,
                 x.Price.ToString("C", culture)
-            )).ToList()
+            )).ToList(),
+            branding.ThemeMode,
+            branding.AccentColor,
+            branding.LogoUrl
         );
 
         return Ok(response);
@@ -440,6 +445,19 @@ public class PublicBookingController : ControllerBase
                 x.PublicSlug == slug);
     }
 
+    private async Task<BrandingSnapshot> GetBrandingAsync(ulong userId)
+    {
+        var settings = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+
+        return new BrandingSnapshot(
+            settings?.ThemeMode ?? "light",
+            settings?.AccentColor ?? "blue",
+            settings?.LogoUrl
+        );
+    }
+
     private async Task<List<AvailabilityWindow>> GetAvailabilityWindowsAsync(ulong userId, DateTime date)
     {
         var specificDates = await _context.AvailabilityDates
@@ -528,6 +546,8 @@ public class PublicBookingController : ControllerBase
             .Select(x => x.Email)
             .FirstOrDefaultAsync();
     }
+
+    private sealed record BrandingSnapshot(string ThemeMode, string AccentColor, string? LogoUrl);
 
     private sealed record AvailabilityWindow(TimeSpan Start, TimeSpan End);
 

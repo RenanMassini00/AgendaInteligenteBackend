@@ -28,9 +28,13 @@ public class ProfileController : ControllerBase
             return NotFound(new ApiMessage("Usuário não encontrado."));
         }
 
+        var brandingUserId = NormalizeRole(user.Role) == "client" && user.ProfessionalUserId.HasValue
+            ? user.ProfessionalUserId.Value
+            : user.Id;
+
         var userSetting = await _context.UserSettings
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.UserId == user.Id);
+            .FirstOrDefaultAsync(x => x.UserId == brandingUserId);
 
         return Ok(new UserResponse(
             Id: user.Id,
@@ -47,7 +51,7 @@ public class ProfileController : ControllerBase
             HasAppointmentsModule: user.HasAppointmentsModule,
             HasCatalogModule: user.HasCatalogModule,
             ThemeMode: userSetting?.ThemeMode ?? "light",
-            AccentColor: userSetting?.AccentColor ?? "azul",
+            AccentColor: userSetting?.AccentColor ?? "blue",
             LogoUrl: userSetting?.LogoUrl
         ));
     }

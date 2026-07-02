@@ -64,8 +64,15 @@ public record PublicCatalogResponse(
     string? Specialty,
     string? PublicSlug,
     string? Phone,
-    List<PublicCatalogProductResponse> Products
-);
+    List<PublicCatalogProductResponse> Products,
+    string ThemeMode,
+    string AccentColor,
+    string? LogoUrl
+)
+{
+    public string Theme => ThemeMode;
+    public string? CompanyLogoUrl => LogoUrl;
+}
 
 public record PublicCatalogProductResponse(
     ulong Id,

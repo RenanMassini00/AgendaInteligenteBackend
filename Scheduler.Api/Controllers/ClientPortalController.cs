@@ -30,6 +30,8 @@ public class ClientPortalController : ControllerBase
         var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId && x.Role == "client" && x.IsActive);
         if (user is null) return NotFound(new ApiMessage("Cliente não encontrado."));
 
+        var branding = await GetProfessionalBrandingAsync(user.ProfessionalUserId);
+
         return Ok(new UserResponse(
             user.Id,
             user.FullName,
@@ -44,9 +46,9 @@ public class ClientPortalController : ControllerBase
             user.ClientId,
             user.HasAppointmentsModule,
             user.HasCatalogModule,
-            "light",
-            "blue",
-            null
+            branding.ThemeMode,
+            branding.AccentColor,
+            branding.LogoUrl
         ));
     }
 
@@ -222,4 +224,24 @@ public class ClientPortalController : ControllerBase
             created.Notes
         ));
     }
+
+    private async Task<BrandingSnapshot> GetProfessionalBrandingAsync(ulong? professionalUserId)
+    {
+        if (professionalUserId is null)
+        {
+            return new BrandingSnapshot("light", "blue", null);
+        }
+
+        var settings = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == professionalUserId.Value);
+
+        return new BrandingSnapshot(
+            settings?.ThemeMode ?? "light",
+            settings?.AccentColor ?? "blue",
+            settings?.LogoUrl
+        );
+    }
+
+    private sealed record BrandingSnapshot(string ThemeMode, string AccentColor, string? LogoUrl);
 }
