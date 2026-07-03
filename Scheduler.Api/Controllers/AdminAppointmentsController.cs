@@ -8,6 +8,8 @@ namespace Scheduler.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/appointments")]
+[Route("api/admin/appointments-summary")]
+[Route("api/admin/appointment-summary")]
 public class AdminAppointmentsController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -19,6 +21,7 @@ public class AdminAppointmentsController : ControllerBase
 
     [HttpGet]
     [HttpGet("counts")]
+    [HttpGet("summary")]
     public async Task<ActionResult<AdminAppointmentCountsResponse>> GetCounts(
         [FromQuery] string? date = null,
         [FromQuery] string? month = null)
