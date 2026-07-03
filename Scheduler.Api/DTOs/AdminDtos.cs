@@ -56,6 +56,19 @@ public record AdminBillingResponse(
     string? Notes
 );
 
+public record AdminAppointmentCountsResponse(
+    string PeriodType,
+    string? Date,
+    string? Month,
+    int TotalAppointments,
+    List<AdminAppointmentCountResponse> Items
+);
+
+public record AdminAppointmentCountResponse(
+    ulong Id,
+    int AppointmentsCount
+);
+
 public record AdminUserResponse(
     ulong Id,
     string FullName,
