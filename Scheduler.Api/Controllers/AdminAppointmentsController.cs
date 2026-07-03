@@ -22,6 +22,7 @@ public class AdminAppointmentsController : ControllerBase
     [HttpGet]
     [HttpGet("counts")]
     [HttpGet("summary")]
+    [HttpGet("client-summary")]
     public async Task<ActionResult<AdminAppointmentCountsResponse>> GetCounts(
         [FromQuery] string? date = null,
         [FromQuery] string? month = null)
