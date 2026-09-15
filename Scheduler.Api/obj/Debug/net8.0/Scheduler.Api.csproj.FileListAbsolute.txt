@@ -119,4 +119,9 @@ C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\D
 C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll
 C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
 C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\WebPush.dll
-C:\Users\massini913471\Source\Repos\AgendaInteligenteBackend\Scheduler.Api\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Microsoft.Extensions.Caching.Memory.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Microsoft.Extensions.Logging.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\massini913471\source\repos\AgendaInteligenteBackend\Scheduler.Api\bin\Debug\net8.0\Microsoft.Extensions.Options.dll

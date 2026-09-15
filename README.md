@@ -33,6 +33,26 @@ http://localhost:5080/swagger
 
 ## Credenciais de teste
 
+## Configuração segura do SMTP (Gmail)
+
+O projeto não guarda mais a senha SMTP nos arquivos versionados. Para enviar e-mails pelo
+`massinire@gmail.com`, ative a verificação em duas etapas nessa conta, crie uma **senha de app**
+exclusiva para este sistema e guarde-a como segredo. Nunca use a senha normal do Gmail.
+
+No ambiente de desenvolvimento, execute uma vez (substituindo o valor sem compartilhá-lo):
+
+```bash
+dotnet user-secrets set "Email:Password" "SUA_NOVA_SENHA_DE_APP" --project Scheduler.Api
+```
+
+Em produção, configure o segredo no provedor de hospedagem como a variável de ambiente
+`Email__Password`. Mantenha também `Email__Username=massinire@gmail.com` e
+`Email__FromEmail=massinire@gmail.com` caso a hospedagem sobrescreva a configuração do projeto.
+
+O endpoint de teste de e-mail foi removido, pois ele permitia que qualquer pessoa escolhesse o
+destinatário e poderia ser abusado para spam. Os endpoints públicos de agendamento agora têm
+limite de cinco tentativas por IP a cada dez minutos.
+
 ### Profissional
 - e-mail: `renan@email.com`
 - senha: `123456`

@@ -48,7 +48,8 @@ public record PublicBookingRequest(
     string Phone,
     ulong ServiceId,
     string Date,
-    string Time
+    string Time,
+    string? Email = null
 );
 
 public record PublicBookingCreatedResponse(

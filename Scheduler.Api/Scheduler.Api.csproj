@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>Scheduler.Api-3aa2e99a-d2b2-4a9f-9a11-349603324b72</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Controllers\PublicController.cs" />

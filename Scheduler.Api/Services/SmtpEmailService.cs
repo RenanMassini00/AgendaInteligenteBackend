@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using Scheduler.Api.Options;
 using Scheduler.Api.Services.Contracts;
-using System.Security.Authentication;
 
 namespace Scheduler.Api.Services;
 
@@ -12,16 +11,13 @@ public class SmtpEmailService : IEmailService
 {
     private readonly EmailOptions _options;
     private readonly ILogger<SmtpEmailService> _logger;
-    private readonly IWebHostEnvironment _environment;
 
     public SmtpEmailService(
         IOptions<EmailOptions> options,
-        ILogger<SmtpEmailService> logger,
-        IWebHostEnvironment environment)
+        ILogger<SmtpEmailService> logger)
     {
         _options = options.Value;
         _logger = logger;
-        _environment = environment;
     }
 
     public async Task<bool> SendAsync(string? toEmail, string subject, string htmlBody)
@@ -38,6 +34,17 @@ public class SmtpEmailService : IEmailService
             return false;
         }
 
+        if (string.IsNullOrWhiteSpace(_options.Host) ||
+            _options.Port is < 1 or > 65535 ||
+            string.IsNullOrWhiteSpace(_options.Username) ||
+            string.IsNullOrWhiteSpace(_options.Password) ||
+            string.IsNullOrWhiteSpace(_options.FromEmail))
+        {
+            _logger.LogError(
+                "Configuração de SMTP incompleta. Defina Email:Host, Email:Port, Email:Username, Email:Password e Email:FromEmail em um armazenamento de segredos.");
+            return false;
+        }
+
         try
         {
             var message = new MimeMessage();
@@ -48,24 +55,18 @@ public class SmtpEmailService : IEmailService
 
             using var client = new SmtpClient();
 
-            client.CheckCertificateRevocation = false;
-            client.SslProtocols = SslProtocols.Tls12;
-
-            if (_environment.IsDevelopment())
-            {
-                client.ServerCertificateValidationCallback = (_, _, _, _) => true;
-            }
+            client.Timeout = 30_000;
+            client.CheckCertificateRevocation = true;
 
             var secureOption = _options.UseSsl
                 ? SecureSocketOptions.SslOnConnect
                 : SecureSocketOptions.StartTls;
 
             _logger.LogInformation(
-                "Tentando enviar e-mail. Host: {Host}, Port: {Port}, UseSsl: {UseSsl}, Username: {Username}, ToEmail: {ToEmail}",
+                "Tentando enviar e-mail. Host: {Host}, Port: {Port}, UseSsl: {UseSsl}, ToEmail: {ToEmail}",
                 _options.Host,
                 _options.Port,
                 _options.UseSsl,
-                _options.Username,
                 toEmail
             );
 

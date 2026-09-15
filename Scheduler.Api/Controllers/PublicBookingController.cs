@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
@@ -103,6 +104,7 @@ public class PublicBookingController : ControllerBase
     }
 
     [HttpPost("{slug}/appointments")]
+    [EnableRateLimiting("PublicBooking")]
     public async Task<ActionResult<PublicBookingSuccessResponse>> Create(
         string slug,
         [FromBody] PublicBookAppointmentRequest request)
@@ -306,6 +308,7 @@ public class PublicBookingController : ControllerBase
     }
 
     [HttpPost("{slug}/book")]
+    [EnableRateLimiting("PublicBooking")]
     public async Task<ActionResult<PublicBookingCreatedResponse>> Book(
         string slug,
         [FromBody] PublicBookingRequest request)
@@ -333,6 +336,11 @@ public class PublicBookingController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Phone))
         {
             return BadRequest(new ApiMessage("Informe o telefone do cliente."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Email) && !IsValidEmail(request.Email))
+        {
+            return BadRequest(new ApiMessage("Informe um e-mail válido."));
         }
 
         if (!DateTime.TryParseExact(request.Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var targetDate))
@@ -384,7 +392,7 @@ public class PublicBookingController : ControllerBase
             {
                 UserId = professional.Id,
                 FullName = request.FullName.Trim(),
-                Email = null,
+                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
                 Phone = request.Phone.Trim(),
                 BirthDate = null,
                 Notes = "Criado automaticamente via agendamento público.",
@@ -398,7 +406,12 @@ public class PublicBookingController : ControllerBase
         }
         else
         {
+            var registeredClientEmail = await GetRegisteredClientEmailAsync(client.Id, professional.Id);
+
             client.FullName = request.FullName.Trim();
+            client.Email = string.IsNullOrWhiteSpace(registeredClientEmail)
+                ? string.IsNullOrWhiteSpace(request.Email) ? client.Email : request.Email.Trim()
+                : registeredClientEmail.Trim();
             client.Phone = request.Phone.Trim();
             client.IsActive = true;
             client.UpdatedAt = DateTime.Now;
@@ -422,6 +435,17 @@ public class PublicBookingController : ControllerBase
 
         _context.Appointments.Add(appointment);
         await _context.SaveChangesAsync();
+
+        var userSetting = await _context.UserSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.UserId == professional.Id);
+
+        await _bookingAutomationService.ProcessAsync(
+            professional,
+            userSetting,
+            client,
+            service,
+            appointment);
 
         return Ok(new PublicBookingCreatedResponse(
             appointment.Id,

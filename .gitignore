@@ -1,0 +1,4 @@
+# Arquivos locais que podem conter credenciais ou chaves privadas.
+Scheduler.Api/appsettings.Local.json
+Scheduler.Api/appsettings.*.Local.json
+Scheduler.Api/Configs/google-service-account.json

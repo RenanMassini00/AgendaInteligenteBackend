@@ -1,6 +1,7 @@
 ﻿using Scheduler.Api.Entities;
 using Scheduler.Api.Services.Contracts;
 using System.Text;
+using System.Text.Encodings.Web;
 
 namespace Scheduler.Api.Services;
 
@@ -47,6 +48,13 @@ public class BookingAutomationService : IBookingAutomationService
             ? professional.FullName
             : professional.BusinessName;
 
+        var encodedClientName = HtmlEncoder.Default.Encode(client.FullName);
+        var encodedBusinessName = HtmlEncoder.Default.Encode(businessName);
+        var encodedServiceName = HtmlEncoder.Default.Encode(service.Name);
+        var encodedClientPhone = HtmlEncoder.Default.Encode(client.Phone);
+        var encodedClientEmail = HtmlEncoder.Default.Encode(client.Email ?? "Não informado");
+        var encodedNotes = HtmlEncoder.Default.Encode(appointment.Notes ?? "Sem observações");
+
         var googleCalendarUrl = BuildGoogleCalendarUrl(
             professional,
             client,
@@ -66,12 +74,12 @@ public class BookingAutomationService : IBookingAutomationService
             <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.6;">
               <h2 style="margin-bottom: 16px;">Agendamento confirmado</h2>
 
-              <p>Olá, <strong>{client.FullName}</strong>!</p>
+              <p>Olá, <strong>{encodedClientName}</strong>!</p>
               <p>Seu agendamento foi realizado com sucesso.</p>
 
               <ul>
-                <li><strong>Profissional:</strong> {businessName}</li>
-                <li><strong>Serviço:</strong> {service.Name}</li>
+                <li><strong>Profissional:</strong> {encodedBusinessName}</li>
+                <li><strong>Serviço:</strong> {encodedServiceName}</li>
                 <li><strong>Data:</strong> {dateText}</li>
                 <li><strong>Horário:</strong> {timeText}</li>
               </ul>
@@ -104,13 +112,13 @@ public class BookingAutomationService : IBookingAutomationService
               <p>Você recebeu um novo agendamento.</p>
 
               <ul>
-                <li><strong>Cliente:</strong> {client.FullName}</li>
-                <li><strong>Telefone:</strong> {client.Phone}</li>
-                <li><strong>E-mail:</strong> {client.Email ?? "Não informado"}</li>
-                <li><strong>Serviço:</strong> {service.Name}</li>
+                <li><strong>Cliente:</strong> {encodedClientName}</li>
+                <li><strong>Telefone:</strong> {encodedClientPhone}</li>
+                <li><strong>E-mail:</strong> {encodedClientEmail}</li>
+                <li><strong>Serviço:</strong> {encodedServiceName}</li>
                 <li><strong>Data:</strong> {dateText}</li>
                 <li><strong>Horário:</strong> {timeText}</li>
-                <li><strong>Observações:</strong> {appointment.Notes ?? "Sem observações"}</li>
+                <li><strong>Observações:</strong> {encodedNotes}</li>
               </ul>
 
               <div style="margin-top: 24px;">
