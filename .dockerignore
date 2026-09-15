@@ -1,0 +1,15 @@
+.git
+.github
+.vs
+.vscode
+**/bin
+**/obj
+**/.env
+**/.env.*
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+**/Configs/*.json
+**/*.pem
+**/*.pfx
+**/*.key

@@ -32,6 +32,9 @@ jobs:
 
       - name: Atualizar API na VPS
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
@@ -39,7 +42,12 @@ jobs:
           port: 22
           timeout: 60s
           command_timeout: 10m
+          envs: SMTP_PASSWORD,DATABASE_CONNECTION_STRING
           script: |
+            test -n "$SMTP_PASSWORD" || { echo "Secret SMTP_PASSWORD não configurado."; exit 1; }
+            test -n "$DATABASE_CONNECTION_STRING" || { echo "Secret DATABASE_CONNECTION_STRING não configurado."; exit 1; }
+            export Email__Password="$SMTP_PASSWORD"
+            export ConnectionStrings__DefaultConnection="$DATABASE_CONNECTION_STRING"
             docker pull renanmassini/agenda-api:latest
             docker rm -f agenda_api || true
             docker run -d \
@@ -48,5 +56,6 @@ jobs:
               --network agenda-inteligente_agenda_network \
               -p 5000:8080 \
               -e ASPNETCORE_URLS=http://+:8080 \
-              -e "ConnectionStrings__DefaultConnection=server=mysql;port=3306;database=scheduler_db;user=root;password=Seigan2030@;TreatTinyAsBoolean=true;" \
+              -e Email__Password \
+              -e ConnectionStrings__DefaultConnection \
               renanmassini/agenda-api:latest

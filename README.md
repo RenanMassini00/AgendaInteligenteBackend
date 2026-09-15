@@ -36,7 +36,7 @@ http://localhost:5080/swagger
 ## Configuração segura do SMTP (Gmail)
 
 O projeto não guarda mais a senha SMTP nos arquivos versionados. Para enviar e-mails pelo
-`massinire@gmail.com`, ative a verificação em duas etapas nessa conta, crie uma **senha de app**
+`massinirenan031@gmail.com`, ative a verificação em duas etapas nessa conta, crie uma **senha de app**
 exclusiva para este sistema e guarde-a como segredo. Nunca use a senha normal do Gmail.
 
 No ambiente de desenvolvimento, execute uma vez (substituindo o valor sem compartilhá-lo):
@@ -46,8 +46,19 @@ dotnet user-secrets set "Email:Password" "SUA_NOVA_SENHA_DE_APP" --project Sched
 ```
 
 Em produção, configure o segredo no provedor de hospedagem como a variável de ambiente
-`Email__Password`. Mantenha também `Email__Username=massinire@gmail.com` e
-`Email__FromEmail=massinire@gmail.com` caso a hospedagem sobrescreva a configuração do projeto.
+`Email__Password`. Mantenha também `Email__Username=massinirenan031@gmail.com` e
+`Email__FromEmail=massinirenan031@gmail.com` caso a hospedagem sobrescreva a configuração do projeto.
+
+### Deploy por GitHub Actions e Docker
+
+Antes de executar o deploy, crie estes **Repository secrets** em
+`Settings` > `Secrets and variables` > `Actions` no GitHub:
+
+- `SMTP_PASSWORD`: a senha de app recém-criada para a conta remetente.
+- `DATABASE_CONNECTION_STRING`: a connection string de produção do banco.
+
+O workflow envia esses valores apenas para a execução remota na VPS e o Docker os injeta no
+container em tempo de execução. Eles não entram na imagem nem nos arquivos `appsettings`.
 
 O endpoint de teste de e-mail foi removido, pois ele permitia que qualquer pessoa escolhesse o
 destinatário e poderia ser abusado para spam. Os endpoints públicos de agendamento agora têm
