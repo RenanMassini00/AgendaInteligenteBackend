@@ -31,6 +31,7 @@ public class ProductsController : ControllerBase
         var products = await _context.Products
             .AsNoTracking()
             .Where(x => x.UserId == userId)
+            .Include(x => x.Images.OrderBy(image => image.SortOrder))
             .OrderByDescending(x => x.IsFeatured)
             .ThenByDescending(x => x.CreatedAt)
             .ToListAsync();
@@ -50,6 +51,7 @@ public class ProductsController : ControllerBase
 
         var product = await _context.Products
             .AsNoTracking()
+            .Include(x => x.Images.OrderBy(image => image.SortOrder))
             .FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
 
         if (product is null)
@@ -83,6 +85,7 @@ public class ProductsController : ControllerBase
 
         try
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
             var product = new Product
             {
                 UserId = request.UserId,
@@ -92,7 +95,7 @@ public class ProductsController : ControllerBase
                 Price = request.Price,
                 OriginalPrice = request.OriginalPrice,
                 PromotionalPrice = request.PromotionalPrice,
-                ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim(),
+                ImageUrl = GetImageUrls(request.ImageUrl, request.ImageUrls).FirstOrDefault(),
                 StockQuantity = request.StockQuantity,
                 SoldQuantity = 0,
                 IsActive = true,
@@ -105,6 +108,9 @@ public class ProductsController : ControllerBase
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
+            AddProductImages(product, GetImageUrls(request.ImageUrl, request.ImageUrls));
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return Ok(new ApiMessage("Produto cadastrado com sucesso."));
         }
@@ -138,6 +144,7 @@ public class ProductsController : ControllerBase
         }
 
         var product = await _context.Products
+            .Include(x => x.Images)
             .FirstOrDefaultAsync(x => x.Id == id && x.UserId == request.UserId);
 
         if (product is null)
@@ -151,13 +158,17 @@ public class ProductsController : ControllerBase
         product.Price = request.Price;
         product.OriginalPrice = request.OriginalPrice;
         product.PromotionalPrice = request.PromotionalPrice;
-        product.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim();
+        var imageUrls = GetImageUrls(request.ImageUrl, request.ImageUrls);
+        product.ImageUrl = imageUrls.FirstOrDefault();
         product.StockQuantity = request.StockQuantity;
         product.IsActive = request.IsActive;
         product.IsFeatured = request.IsFeatured;
         product.WhatsAppMessage = string.IsNullOrWhiteSpace(request.WhatsAppMessage) ? null : request.WhatsAppMessage.Trim();
         product.IsSold = product.StockQuantity == 0 || request.IsSold;
         product.UpdatedAt = DateTime.Now;
+
+        _context.ProductImages.RemoveRange(product.Images);
+        AddProductImages(product, imageUrls);
 
         await _context.SaveChangesAsync();
 
@@ -294,6 +305,12 @@ public class ProductsController : ControllerBase
             effectivePrice,
             effectivePrice.ToString("C", culture),
             product.ImageUrl,
+            product.Images
+                .OrderBy(image => image.SortOrder)
+                .Select(image => image.ImageUrl)
+                .DefaultIfEmpty(product.ImageUrl ?? string.Empty)
+                .Where(url => !string.IsNullOrWhiteSpace(url))
+                .ToList(),
             product.StockQuantity,
             product.SoldQuantity,
             product.IsActive,
@@ -302,6 +319,32 @@ public class ProductsController : ControllerBase
             product.IsActive && product.StockQuantity > 0,
             product.WhatsAppMessage
         );
+    }
+
+    private static List<string> GetImageUrls(string? imageUrl, IEnumerable<string>? imageUrls)
+    {
+        var urls = (imageUrls ?? [])
+            .Append(imageUrl ?? string.Empty)
+            .Select(url => url.Trim())
+            .Where(url => !string.IsNullOrWhiteSpace(url))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return urls;
+    }
+
+    private static void AddProductImages(Product product, IEnumerable<string> imageUrls)
+    {
+        var now = DateTime.Now;
+        product.Images = imageUrls
+            .Select((url, index) => new ProductImage
+            {
+                ProductId = product.Id,
+                ImageUrl = url,
+                SortOrder = index,
+                CreatedAt = now
+            })
+            .ToList();
     }
 
     private static decimal GetEffectivePrice(Product product)

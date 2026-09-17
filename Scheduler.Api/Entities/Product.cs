@@ -57,4 +57,6 @@ public class Product
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
+
+    public List<ProductImage> Images { get; set; } = [];
 }

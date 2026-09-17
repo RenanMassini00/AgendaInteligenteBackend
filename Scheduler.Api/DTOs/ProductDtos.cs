@@ -14,6 +14,7 @@ public record ProductResponse(
     decimal EffectivePrice,
     string EffectivePriceFormatted,
     string? ImageUrl,
+    List<string> ImageUrls,
     int StockQuantity,
     int SoldQuantity,
     bool IsActive,
@@ -32,6 +33,7 @@ public record ProductCreateRequest(
     decimal? OriginalPrice,
     decimal? PromotionalPrice,
     string? ImageUrl,
+    List<string>? ImageUrls,
     int StockQuantity,
     bool IsFeatured,
     string? WhatsAppMessage
@@ -46,6 +48,7 @@ public record ProductUpdateRequest(
     decimal? OriginalPrice,
     decimal? PromotionalPrice,
     string? ImageUrl,
+    List<string>? ImageUrls,
     int StockQuantity,
     bool IsActive,
     bool IsSold,
@@ -88,6 +91,7 @@ public record PublicCatalogProductResponse(
     decimal EffectivePrice,
     string EffectivePriceFormatted,
     string? ImageUrl,
+    List<string> ImageUrls,
     int StockQuantity,
     bool IsFeatured,
     string? WhatsAppUrl

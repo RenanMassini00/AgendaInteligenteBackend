@@ -21,6 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<BillingRecord> BillingRecords => Set<BillingRecord>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<WebPushSubscription> PushSubscriptions => Set<WebPushSubscription>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +65,19 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.User)
                 .WithMany(e => e.Clients)
                 .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ProductImage>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.ImageUrl).HasMaxLength(2000).IsRequired();
+            entity.HasIndex(x => new { x.ProductId, x.SortOrder })
+                .HasDatabaseName("idx_product_images_product_order");
+
+            entity.HasOne(x => x.Product)
+                .WithMany(x => x.Images)
+                .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

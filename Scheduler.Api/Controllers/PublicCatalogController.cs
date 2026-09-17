@@ -37,6 +37,7 @@ public class PublicCatalogController : ControllerBase
 
         var products = await _context.Products
             .AsNoTracking()
+            .Include(x => x.Images.OrderBy(image => image.SortOrder))
             .Where(x =>
                 x.UserId == user.Id &&
                 x.IsActive &&
@@ -77,6 +78,12 @@ public class PublicCatalogController : ControllerBase
                 effectivePrice,
                 effectivePrice.ToString("C", culture),
                 product.ImageUrl,
+                product.Images
+                    .OrderBy(image => image.SortOrder)
+                    .Select(image => image.ImageUrl)
+                    .DefaultIfEmpty(product.ImageUrl ?? string.Empty)
+                    .Where(url => !string.IsNullOrWhiteSpace(url))
+                    .ToList(),
                 product.StockQuantity,
                 product.IsFeatured,
                 whatsAppUrl
