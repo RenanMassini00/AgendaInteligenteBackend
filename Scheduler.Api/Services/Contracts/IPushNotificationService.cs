@@ -5,6 +5,10 @@ namespace Scheduler.Api.Services.Contracts;
 
 public interface IPushNotificationService
 {
+    Task<PushSubscriptionStatusResponse> GetSubscriptionStatusAsync(
+        ulong userId,
+        CancellationToken cancellationToken = default);
+
     Task<bool> RegisterSubscriptionAsync(
         ulong userId,
         PushSubscriptionRegisterRequest request,

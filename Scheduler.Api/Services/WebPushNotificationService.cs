@@ -86,7 +86,54 @@ public class WebPushNotificationService : IPushNotificationService
         subscription.UpdatedAt = DateTime.Now;
 
         await _context.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation(
+            "Assinatura Web Push registrada para o usuário {UserId}. EndpointHash: {EndpointHash}",
+            userId,
+            endpointHash);
         return true;
+    }
+
+    public async Task<PushSubscriptionStatusResponse> GetSubscriptionStatusAsync(
+        ulong userId,
+        CancellationToken cancellationToken = default)
+    {
+        var userExists = await _context.Users
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == userId && x.IsActive, cancellationToken);
+
+        var activeSubscriptions = userExists
+            ? await _context.PushSubscriptions
+                .AsNoTracking()
+                .CountAsync(x => x.UserId == userId && x.IsActive, cancellationToken)
+            : 0;
+
+        var latest = userExists
+            ? await _context.PushSubscriptions
+                .AsNoTracking()
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.UpdatedAt)
+                .Select(x => new { x.LastSuccessAt, x.LastFailureAt, x.FailureCount })
+                .FirstOrDefaultAsync(cancellationToken)
+            : null;
+
+        var configured = IsConfigured();
+        var message = !userExists
+            ? "O usuário informado não existe ou está inativo."
+            : !configured
+                ? "Web Push está desabilitado ou sem chaves VAPID configuradas."
+                : activeSubscriptions == 0
+                    ? "Não existe uma assinatura Web Push ativa para este usuário."
+                    : "Existe pelo menos uma assinatura Web Push ativa para este usuário.";
+
+        return new PushSubscriptionStatusResponse(
+            userId,
+            userExists,
+            configured,
+            activeSubscriptions,
+            latest?.LastSuccessAt,
+            latest?.LastFailureAt,
+            latest?.FailureCount ?? 0,
+            message);
     }
 
     public async Task<bool> RemoveSubscriptionAsync(
@@ -139,6 +186,9 @@ public class WebPushNotificationService : IPushNotificationService
 
         if (subscriptions.Count == 0)
         {
+            _logger.LogWarning(
+                "Nenhuma assinatura Web Push ativa encontrada para o usuário {UserId}.",
+                userId);
             return false;
         }
 
@@ -180,6 +230,10 @@ public class WebPushNotificationService : IPushNotificationService
                 savedSubscription.FailureCount = 0;
                 savedSubscription.UpdatedAt = DateTime.Now;
                 sent++;
+                _logger.LogInformation(
+                    "Web Push aceito pelo provedor para o usuário {UserId}. SubscriptionId: {SubscriptionId}",
+                    userId,
+                    savedSubscription.Id);
             }
             catch (WebPushException ex) when (
                 ex.StatusCode == HttpStatusCode.NotFound ||

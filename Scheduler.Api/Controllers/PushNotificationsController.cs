@@ -54,6 +54,20 @@ public class PushNotificationsController : ControllerBase
         return Ok(new ApiMessage("Dispositivo registrado para notificações."));
     }
 
+    [HttpGet("subscriptions/status")]
+    public async Task<ActionResult<PushSubscriptionStatusResponse>> SubscriptionStatus(
+        [FromQuery] ulong userId)
+    {
+        if (userId == 0)
+        {
+            return BadRequest(new ApiMessage("Usuário inválido."));
+        }
+
+        return Ok(await _pushNotificationService.GetSubscriptionStatusAsync(
+            userId,
+            HttpContext.RequestAborted));
+    }
+
     [HttpDelete("subscriptions")]
     public async Task<ActionResult<ApiMessage>> Remove(
         [FromQuery] ulong userId,
@@ -98,9 +112,27 @@ public class PushNotificationsController : ControllerBase
 
         if (!sent)
         {
-            return StatusCode(500, new ApiMessage("Nenhum dispositivo ativo recebeu a notificação."));
+            var status = await _pushNotificationService.GetSubscriptionStatusAsync(
+                userId,
+                HttpContext.RequestAborted);
+
+            return StatusCode(
+                status.UserExists && status.WebPushConfigured && status.ActiveSubscriptions > 0
+                    ? StatusCodes.Status502BadGateway
+                    : StatusCodes.Status409Conflict,
+                new ApiMessage(status.Message));
         }
 
-        return Ok(new ApiMessage("Notificação enviada com sucesso."));
+        var deliveryStatus = await _pushNotificationService.GetSubscriptionStatusAsync(
+            userId,
+            HttpContext.RequestAborted);
+
+        return Ok(new PushTestResponse(
+            "O provedor aceitou o envio. A exibição depende do Service Worker, da permissão e do dispositivo.",
+            userId,
+            deliveryStatus.ActiveSubscriptions,
+            true,
+            deliveryStatus.LastSuccessAt,
+            deliveryStatus.LastFailureAt));
     }
 }

@@ -29,3 +29,23 @@ public record PushTestRequest(
     string? Body,
     string? Url
 );
+
+public record PushSubscriptionStatusResponse(
+    ulong UserId,
+    bool UserExists,
+    bool WebPushConfigured,
+    int ActiveSubscriptions,
+    DateTime? LastSuccessAt,
+    DateTime? LastFailureAt,
+    int FailureCount,
+    string Message
+);
+
+public record PushTestResponse(
+    string Message,
+    ulong UserId,
+    int ActiveSubscriptions,
+    bool ProviderAccepted,
+    DateTime? LastSuccessAt,
+    DateTime? LastFailureAt
+);
