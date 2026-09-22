@@ -117,6 +117,7 @@ builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
 builder.Services.AddScoped<IPushNotificationService, WebPushNotificationService>();
 builder.Services.AddScoped<IBookingAutomationService, BookingAutomationService>();
+builder.Services.AddScoped<IInAppNotificationService, InAppNotificationService>();
 
 var app = builder.Build();
 

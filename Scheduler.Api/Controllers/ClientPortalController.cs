@@ -15,13 +15,19 @@ public class ClientPortalController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IBookingAutomationService _bookingAutomationService;
+    private readonly IInAppNotificationService _inAppNotificationService;
+    private readonly IPushNotificationService _pushNotificationService;
 
     public ClientPortalController(
         AppDbContext context,
-        IBookingAutomationService bookingAutomationService)
+        IBookingAutomationService bookingAutomationService,
+        IInAppNotificationService inAppNotificationService,
+        IPushNotificationService pushNotificationService)
     {
         _context = context;
         _bookingAutomationService = bookingAutomationService;
+        _inAppNotificationService = inAppNotificationService;
+        _pushNotificationService = pushNotificationService;
     }
 
     [HttpGet("me")]
@@ -223,6 +229,68 @@ public class ClientPortalController : ControllerBase
             created.PriceAtBooking.ToString("C", culture),
             created.Notes
         ));
+    }
+
+    [HttpPost("appointments/{id}/response")]
+    public async Task<ActionResult<ApiMessage>> RespondToAppointment(
+        ulong id,
+        [FromQuery] ulong userId,
+        [FromBody] AppointmentResponseRequest request)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(x => x.Id == userId && x.Role == "client" && x.IsActive);
+        if (user?.ClientId is null || user.ProfessionalUserId is null)
+            return BadRequest(new ApiMessage("Sessão do cliente inválida."));
+
+        var action = (request.Action ?? string.Empty).Trim().ToLowerInvariant();
+        if (action is not ("accepted" or "rejected"))
+            return BadRequest(new ApiMessage("Ação inválida. Use accepted ou rejected."));
+
+        var appointment = await _context.Appointments
+            .FirstOrDefaultAsync(x =>
+                x.Id == id &&
+                x.UserId == user.ProfessionalUserId &&
+                x.ClientId == user.ClientId.Value);
+        if (appointment is null)
+            return NotFound(new ApiMessage("Agendamento não encontrado."));
+        if (appointment.Status is "cancelled" or "completed")
+            return BadRequest(new ApiMessage("Este agendamento não pode mais receber aceite."));
+
+        var professional = await _context.Users
+            .FirstAsync(x => x.Id == appointment.UserId && x.IsActive);
+        var client = await _context.Clients
+            .FirstAsync(x => x.Id == appointment.ClientId && x.IsActive);
+        var service = await _context.Services
+            .FirstAsync(x => x.Id == appointment.ServiceId && x.IsActive);
+
+        var previousStatus = appointment.Status;
+        appointment.Status = action == "accepted" ? "confirmed" : "cancelled";
+        appointment.CancelledReason = action == "rejected" ? "Recusado pelo cliente" : null;
+        appointment.UpdatedAt = DateTime.Now;
+        _context.AppointmentStatusHistory.Add(new AppointmentStatusHistory
+        {
+            AppointmentId = appointment.Id,
+            PreviousStatus = previousStatus,
+            NewStatus = appointment.Status,
+            ChangedByUserId = user.Id,
+            Note = action == "accepted" ? "Aceito pelo cliente" : "Recusado pelo cliente",
+            CreatedAt = DateTime.Now
+        });
+        await _context.SaveChangesAsync();
+
+        await _inAppNotificationService.NotifyAppointmentResponseAsync(
+            professional, client, service, appointment, action);
+        await _pushNotificationService.SendToUserAsync(
+            professional.Id,
+            action == "accepted" ? "Agendamento aceito" : "Agendamento recusado",
+            $"{client.FullName} {(action == "accepted" ? "aceitou" : "recusou")} seu agendamento.",
+            "/appointments",
+            $"appointment-response-{appointment.Id}",
+            appointment.Id);
+
+        return Ok(new ApiMessage(action == "accepted"
+            ? "Agendamento aceito com sucesso."
+            : "Agendamento recusado."));
     }
 
     private async Task<BrandingSnapshot> GetProfessionalBrandingAsync(ulong? professionalUserId)

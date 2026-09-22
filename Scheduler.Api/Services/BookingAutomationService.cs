@@ -11,6 +11,7 @@ public class BookingAutomationService : IBookingAutomationService
     private readonly IGoogleCalendarService _googleCalendarService;
     private readonly IWhatsAppService _whatsAppService;
     private readonly IPushNotificationService _pushNotificationService;
+    private readonly IInAppNotificationService _inAppNotificationService;
     private readonly ILogger<BookingAutomationService> _logger;
 
     public BookingAutomationService(
@@ -18,12 +19,14 @@ public class BookingAutomationService : IBookingAutomationService
         IGoogleCalendarService googleCalendarService,
         IWhatsAppService whatsAppService,
         IPushNotificationService pushNotificationService,
+        IInAppNotificationService inAppNotificationService,
         ILogger<BookingAutomationService> logger)
     {
         _emailService = emailService;
         _googleCalendarService = googleCalendarService;
         _whatsAppService = whatsAppService;
         _pushNotificationService = pushNotificationService;
+        _inAppNotificationService = inAppNotificationService;
         _logger = logger;
     }
 
@@ -191,6 +194,9 @@ public class BookingAutomationService : IBookingAutomationService
                 service,
                 appointment
             );
+
+        await _inAppNotificationService.CreateAppointmentNotificationsAsync(
+            professional, client, service, appointment);
 
         var calendarCreated = await _googleCalendarService.CreateAppointmentEventAsync(
             professional,

@@ -71,3 +71,14 @@ limite de cinco tentativas por IP a cada dez minutos.
 ### Cliente
 - e-mail: `cliente@email.com`
 - senha: `123456`
+## Notificações de agendamentos
+
+O fluxo de agendamento continua enviando e-mail, WhatsApp (quando configurado) e Web Push. Agora ele também cria notificações persistidas no sistema para o profissional e para o cliente.
+
+Antes de publicar esta versão, execute [`Scheduler.Api/Sql/add_app_notifications.sql`](Scheduler.Api/Sql/add_app_notifications.sql) no banco existente. A API expõe:
+
+- `GET /api/notifications?userId={id}&unreadOnly=true` para listar notificações;
+- `PATCH /api/notifications/{id}/read?userId={id}` para marcá-las como lidas;
+- `POST /api/client/appointments/{id}/response?userId={id}` com `{ "action": "accepted" }` ou `{ "action": "rejected" }` para o cliente aceitar ou recusar o agendamento.
+
+Cada notificação de agendamento inclui `calendarUrl`, um link para adicionar o compromisso ao Google Agenda. O Web Push existente continua sendo disparado junto com a notificação interna.
