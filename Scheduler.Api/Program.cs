@@ -21,7 +21,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<AuthTokenService>();
+builder.Services.AddSingleton(new AuthTokenService(builder.Configuration));
 builder.Services
     .AddAuthentication("Bearer")
     .AddScheme<AuthenticationSchemeOptions, BearerTokenHandler>("Bearer", _ => { });

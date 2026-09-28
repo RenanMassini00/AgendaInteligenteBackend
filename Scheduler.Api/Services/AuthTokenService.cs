@@ -7,11 +7,16 @@ namespace Scheduler.Api.Services;
 
 public sealed class AuthTokenService
 {
-    private readonly IConfiguration _configuration;
+    private readonly byte[] _signingKey;
 
     public AuthTokenService(IConfiguration configuration)
     {
-        _configuration = configuration;
+        var key = configuration["Authentication:SigningKey"];
+        if (string.IsNullOrWhiteSpace(key) || Encoding.UTF8.GetByteCount(key) < 32)
+            throw new InvalidOperationException(
+                "A variável Authentication__SigningKey é obrigatória e deve conter pelo menos 32 bytes.");
+
+        _signingKey = Encoding.UTF8.GetBytes(key);
     }
 
     public string CreateToken(ulong userId, string role)
@@ -19,7 +24,7 @@ public sealed class AuthTokenService
         var expiresAt = DateTimeOffset.UtcNow.AddHours(12).ToUnixTimeSeconds();
         var payload = $"{userId}|{role}|{expiresAt}";
         var payloadBytes = Encoding.UTF8.GetBytes(payload);
-        var signature = HMACSHA256.HashData(GetSigningKey(), payloadBytes);
+        var signature = HMACSHA256.HashData(_signingKey, payloadBytes);
         return $"{WebEncoders.Base64UrlEncode(payloadBytes)}.{WebEncoders.Base64UrlEncode(signature)}";
     }
 
@@ -44,7 +49,7 @@ public sealed class AuthTokenService
             return null;
         }
 
-        var expectedSignature = HMACSHA256.HashData(GetSigningKey(), payloadBytes);
+        var expectedSignature = HMACSHA256.HashData(_signingKey, payloadBytes);
         if (suppliedSignature.Length != expectedSignature.Length ||
             !CryptographicOperations.FixedTimeEquals(suppliedSignature, expectedSignature))
             return null;
@@ -64,16 +69,6 @@ public sealed class AuthTokenService
             new Claim(ClaimTypes.Role, payload[1])
         };
         return new ClaimsPrincipal(new ClaimsIdentity(claims, "Bearer"));
-    }
-
-    private byte[] GetSigningKey()
-    {
-        var key = _configuration["Authentication:SigningKey"];
-        if (string.IsNullOrWhiteSpace(key) || Encoding.UTF8.GetByteCount(key) < 32)
-            throw new InvalidOperationException(
-                "Configure Authentication:SigningKey com pelo menos 32 bytes usando um segredo de ambiente.");
-
-        return Encoding.UTF8.GetBytes(key);
     }
 
     public static string NormalizeRoleForToken(string role)

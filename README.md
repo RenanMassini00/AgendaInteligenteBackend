@@ -23,7 +23,7 @@ Ao criar uma conta, um cadastro anterior de agendamento público é reaproveitad
 
 Execute [`Scheduler.Api/Sql/add_professional_team.sql`](Scheduler.Api/Sql/add_professional_team.sql) uma vez no banco existente para adicionar o vínculo de funcionários com a conta da empresa.
 
-- Configure o segredo `Authentication:SigningKey` com pelo menos 32 bytes. Em desenvolvimento, use User Secrets (`dotnet user-secrets set "Authentication:SigningKey" "<segredo-aleatorio>" --project Scheduler.Api`); em produção, configure `Authentication__SigningKey` como segredo do ambiente. Nunca versionar esse valor.
+- Configure `Authentication:SigningKey` com pelo menos 32 bytes antes de iniciar a API. Em desenvolvimento, use User Secrets (`dotnet user-secrets set "Authentication:SigningKey" "<segredo-aleatorio>" --project Scheduler.Api`); em produção, configure o GitHub Actions secret `AUTHENTICATION_SIGNING_KEY`. O workflow injeta o valor no container como `Authentication__SigningKey` e interrompe o deploy se ele estiver ausente ou curto. Gere um valor aleatório forte e não o versione nem o compartilhe.
 - Faça login novamente em `POST /api/auth/login` para receber o novo token assinado. Tokens antigos `dev-token-*` deixam de ser aceitos pelos endpoints protegidos. O token expira após 12 horas.
 - Todos os endpoints abaixo exigem `Authorization: Bearer {token}` de uma conta com papel `professional`. O backend deriva o dono do token validado; `ownerUserId` enviado pelo frontend não é usado para autorizar.
 - `GET /api/professional-team/employees` lista funcionários.
@@ -91,6 +91,7 @@ Antes de executar o deploy, crie estes **Repository secrets** em
 
 - `SMTP_PASSWORD`: a senha de app recém-criada para a conta remetente.
 - `DATABASE_CONNECTION_STRING`: a connection string de produção do banco.
+- `AUTHENTICATION_SIGNING_KEY`: segredo aleatório com pelo menos 32 bytes para assinar os tokens de login.
 
 O workflow envia esses valores apenas para a execução remota na VPS e o Docker os injeta no
 container em tempo de execução. Eles não entram na imagem nem nos arquivos `appsettings`.

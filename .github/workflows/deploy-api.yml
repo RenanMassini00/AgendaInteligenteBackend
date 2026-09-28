@@ -35,6 +35,7 @@ jobs:
         env:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
+          AUTHENTICATION_SIGNING_KEY: ${{ secrets.AUTHENTICATION_SIGNING_KEY }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
@@ -42,12 +43,15 @@ jobs:
           port: 22
           timeout: 60s
           command_timeout: 10m
-          envs: SMTP_PASSWORD,DATABASE_CONNECTION_STRING
+          envs: SMTP_PASSWORD,DATABASE_CONNECTION_STRING,AUTHENTICATION_SIGNING_KEY
           script: |
             test -n "$SMTP_PASSWORD" || { echo "Secret SMTP_PASSWORD não configurado."; exit 1; }
             test -n "$DATABASE_CONNECTION_STRING" || { echo "Secret DATABASE_CONNECTION_STRING não configurado."; exit 1; }
+            test -n "$AUTHENTICATION_SIGNING_KEY" || { echo "Secret AUTHENTICATION_SIGNING_KEY não configurado."; exit 1; }
+            test "${#AUTHENTICATION_SIGNING_KEY}" -ge 32 || { echo "Secret AUTHENTICATION_SIGNING_KEY precisa ter pelo menos 32 bytes."; exit 1; }
             export Email__Password="$SMTP_PASSWORD"
             export ConnectionStrings__DefaultConnection="$DATABASE_CONNECTION_STRING"
+            export Authentication__SigningKey="$AUTHENTICATION_SIGNING_KEY"
             docker pull renanmassini/agenda-api:latest
             docker rm -f agenda_api || true
             docker run -d \
@@ -58,4 +62,5 @@ jobs:
               -e ASPNETCORE_URLS=http://+:8080 \
               -e Email__Password \
               -e ConnectionStrings__DefaultConnection \
+              -e Authentication__SigningKey \
               renanmassini/agenda-api:latest
