@@ -21,6 +21,7 @@ public record ProfessionalEmployeeUpdateRequest(
 
 public record ProfessionalEmployeeResponse(
     ulong Id,
+    ulong UserId,
     string FullName,
     string Email,
     string? Phone,

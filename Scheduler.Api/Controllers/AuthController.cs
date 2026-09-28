@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
 using Scheduler.Api.Entities;
+using Scheduler.Api.Services;
 
 namespace Scheduler.Api.Controllers;
 
@@ -16,10 +17,12 @@ public class AuthController : ControllerBase
 {
     private static readonly PasswordHasher<User> PasswordHasher = new();
     private readonly AppDbContext _context;
+    private readonly AuthTokenService _authTokenService;
 
-    public AuthController(AppDbContext context)
+    public AuthController(AppDbContext context, AuthTokenService authTokenService)
     {
         _context = context;
+        _authTokenService = authTokenService;
     }
 
     [HttpPost("login")]
@@ -60,7 +63,9 @@ public class AuthController : ControllerBase
         }
 
         var normalizedRole = NormalizeRole(user.Role);
-        var token = $"dev-token-{normalizedRole}-user-{user.Id}";
+        var token = _authTokenService.CreateToken(
+            user.Id,
+            AuthTokenService.NormalizeRoleForToken(user.Role));
 
         return Ok(new LoginResponse(token, await ToUserResponseAsync(user)));
     }
@@ -138,7 +143,9 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new LoginResponse(
-            $"dev-token-professional-user-{user.Id}",
+            _authTokenService.CreateToken(
+                user.Id,
+                AuthTokenService.NormalizeRoleForToken(user.Role)),
             await ToUserResponseAsync(user)
         ));
     }
@@ -218,7 +225,11 @@ public class AuthController : ControllerBase
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return Ok(new LoginResponse($"dev-token-client-user-{user.Id}", await ToUserResponseAsync(user)));
+        return Ok(new LoginResponse(
+            _authTokenService.CreateToken(
+                user.Id,
+                AuthTokenService.NormalizeRoleForToken(user.Role)),
+            await ToUserResponseAsync(user)));
     }
 
     [HttpGet("me")]

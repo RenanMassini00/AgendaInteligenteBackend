@@ -1,9 +1,11 @@
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.Options;
 using Scheduler.Api.Services;
+using Scheduler.Api.Services.Authentication;
 using Scheduler.Api.Services.Contracts;
 using Scheduler.Api.Services.Notifications;
 
@@ -19,6 +21,11 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<AuthTokenService>();
+builder.Services
+    .AddAuthentication("Bearer")
+    .AddScheme<AuthenticationSchemeOptions, BearerTokenHandler>("Bearer", _ => { });
+builder.Services.AddAuthorization();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -151,6 +158,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("Frontend");
 app.UseRateLimiter();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

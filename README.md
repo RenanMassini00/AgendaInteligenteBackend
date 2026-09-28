@@ -23,20 +23,23 @@ Ao criar uma conta, um cadastro anterior de agendamento público é reaproveitad
 
 Execute [`Scheduler.Api/Sql/add_professional_team.sql`](Scheduler.Api/Sql/add_professional_team.sql) uma vez no banco existente para adicionar o vínculo de funcionários com a conta da empresa.
 
-- `GET /api/professional-team/employees?ownerUserId={id}` lista os funcionários.
-- `POST /api/professional-team/employees?ownerUserId={id}` cadastra funcionário com `fullName`, `email`, `password`, `phone`, `specialty` e `timezone`.
-- `PUT /api/professional-team/employees/{employeeId}?ownerUserId={id}` atualiza cadastro; `password` pode ser omitido e `isActive` controla o acesso.
-- `DELETE /api/professional-team/employees/{employeeId}?ownerUserId={id}` inativa o funcionário, sem apagar o histórico.
+- Configure o segredo `Authentication:SigningKey` com pelo menos 32 bytes. Em desenvolvimento, use User Secrets (`dotnet user-secrets set "Authentication:SigningKey" "<segredo-aleatorio>" --project Scheduler.Api`); em produção, configure `Authentication__SigningKey` como segredo do ambiente. Nunca versionar esse valor.
+- Faça login novamente em `POST /api/auth/login` para receber o novo token assinado. Tokens antigos `dev-token-*` deixam de ser aceitos pelos endpoints protegidos. O token expira após 12 horas.
+- Todos os endpoints abaixo exigem `Authorization: Bearer {token}` de uma conta com papel `professional`. O backend deriva o dono do token validado; `ownerUserId` enviado pelo frontend não é usado para autorizar.
+- `GET /api/professional-team/employees` lista funcionários.
+- `POST /api/professional-team/employees` cadastra funcionário com `fullName`, `email`, `password`, `phone`, `specialty` e `timezone`.
+- `PUT /api/professional-team/employees/{employeeId}` atualiza cadastro; `password` pode ser omitido e `isActive` controla o acesso.
+- `DELETE /api/professional-team/employees/{employeeId}` inativa o funcionário, sem apagar o histórico.
+
+A resposta de cada funcionário contém `id` e `userId` (ambos iguais ao ID da conta), `fullName`, `email`, `phone`, `specialty`, `timezone`, `isActive` e `teamOwnerUserId`.
 
 A conta proprietária precisa estar ativa e ter `hasAppointmentsModule=true`. Funcionários são usuários de papel `employee`, recebem acesso ao calendário próprio e ficam vinculados à conta que os cadastrou. Configure serviços e disponibilidade para cada funcionário usando o respectivo `userId`.
 
 `GET /api/public/professionals/{slug}` passa a incluir `professionals` e `professionalUserId` em cada serviço. `GET /api/public/professionals/{slug}/available-slots` aceita `professionalUserId` como query opcional. Para reservar com `POST /api/public/professionals/{slug}/appointments` ou `/book`, envie `professionalUserId` no corpo junto ao `serviceId`. O profissional selecionado deve pertencer à equipe da agenda e ser o proprietário do serviço; horários e conflitos são verificados no calendário desse funcionário. Se omitido, o endpoint conserva o comportamento antigo e usa o proprietário da agenda.
 
-**Segurança:** a API atual ainda não valida a identidade do token de sessão nos endpoints administrativos; `ownerUserId` e a verificação do módulo não substituem autorização. Antes de disponibilizar o cadastro de funcionários em produção, implemente autenticação/autorização real no backend e derive o proprietário da identidade autenticada, em vez de confiar no ID enviado pelo frontend.
-
 ### Ajustes necessários no frontend
 
-1. Na tela administrativa da empresa, criar uma seção de equipe com listagem, formulário de cadastro/edição e ação para inativar funcionário. Enviar `ownerUserId` conforme o contrato atual; depois da autenticação real, removê-lo da decisão de autorização e derivar o proprietário do token validado.
+1. Na tela administrativa da empresa, criar uma seção de equipe com listagem, formulário de cadastro/edição e ação para inativar funcionário. Remover `ownerUserId` das URLs e enviar o token da sessão no header `Authorization`.
 2. Ao salvar um funcionário, exigir nome, e-mail e senha inicial; permitir telefone, especialidade e fuso horário. A senha não deve ser mostrada novamente após o cadastro.
 3. Na agenda pública, carregar `professionals` e `services` de `GET /api/public/professionals/{slug}`. Permitir escolher o profissional e exibir apenas os serviços cujo `professionalUserId` corresponda à seleção.
 4. Ao buscar horários, incluir `professionalUserId` na query de `available-slots`; ao reservar, enviar o mesmo ID e o serviço selecionado no corpo.

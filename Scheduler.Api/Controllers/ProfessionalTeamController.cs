@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -12,6 +14,7 @@ namespace Scheduler.Api.Controllers;
 [ApiController]
 [Route("api/professional-team/employees")]
 [EnableRateLimiting("Auth")]
+[Authorize(Roles = "professional")]
 public class ProfessionalTeamController : ControllerBase
 {
     private static readonly PasswordHasher<User> PasswordHasher = new();
@@ -23,10 +26,9 @@ public class ProfessionalTeamController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<ProfessionalEmployeeResponse>>> GetAll(
-        [FromQuery] ulong ownerUserId)
+    public async Task<ActionResult<List<ProfessionalEmployeeResponse>>> GetAll()
     {
-        var owner = await GetActiveOwnerAsync(ownerUserId);
+        var owner = await GetActiveOwnerAsync();
         if (owner is null)
             return BadRequest(new ApiMessage("Empresa não encontrada ou sem acesso ao módulo de agendamentos."));
 
@@ -41,10 +43,9 @@ public class ProfessionalTeamController : ControllerBase
 
     [HttpPost]
     public async Task<ActionResult<ProfessionalEmployeeResponse>> Create(
-        [FromQuery] ulong ownerUserId,
         [FromBody] ProfessionalEmployeeCreateRequest request)
     {
-        var owner = await GetActiveOwnerAsync(ownerUserId);
+        var owner = await GetActiveOwnerAsync();
         if (owner is null)
             return BadRequest(new ApiMessage("Empresa não encontrada ou sem acesso ao módulo de agendamentos."));
 
@@ -100,19 +101,15 @@ public class ProfessionalTeamController : ControllerBase
         });
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(
-            nameof(GetAll),
-            new { ownerUserId = owner.Id },
-            ToResponse(employee));
+        return CreatedAtAction(nameof(GetAll), null, ToResponse(employee));
     }
 
     [HttpPut("{employeeId}")]
     public async Task<ActionResult<ProfessionalEmployeeResponse>> Update(
         ulong employeeId,
-        [FromQuery] ulong ownerUserId,
         [FromBody] ProfessionalEmployeeUpdateRequest request)
     {
-        var owner = await GetActiveOwnerAsync(ownerUserId);
+        var owner = await GetActiveOwnerAsync();
         if (owner is null)
             return BadRequest(new ApiMessage("Empresa não encontrada ou sem acesso ao módulo de agendamentos."));
 
@@ -153,10 +150,9 @@ public class ProfessionalTeamController : ControllerBase
 
     [HttpDelete("{employeeId}")]
     public async Task<ActionResult<ApiMessage>> Deactivate(
-        ulong employeeId,
-        [FromQuery] ulong ownerUserId)
+        ulong employeeId)
     {
-        var owner = await GetActiveOwnerAsync(ownerUserId);
+        var owner = await GetActiveOwnerAsync();
         if (owner is null)
             return BadRequest(new ApiMessage("Empresa não encontrada ou sem acesso ao módulo de agendamentos."));
 
@@ -174,16 +170,21 @@ public class ProfessionalTeamController : ControllerBase
         return Ok(new ApiMessage("Funcionário inativado com sucesso."));
     }
 
-    private Task<User?> GetActiveOwnerAsync(ulong ownerUserId)
+    private Task<User?> GetActiveOwnerAsync()
     {
+        var ownerUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!ulong.TryParse(ownerUserId, out var parsedOwnerUserId))
+            return Task.FromResult<User?>(null);
+
         return _context.Users.FirstOrDefaultAsync(x =>
-            x.Id == ownerUserId &&
+            x.Id == parsedOwnerUserId &&
             x.Role == "professional" &&
             x.IsActive &&
             x.HasAppointmentsModule);
     }
 
     private static ProfessionalEmployeeResponse ToResponse(User employee) => new(
+        employee.Id,
         employee.Id,
         employee.FullName,
         employee.Email,
