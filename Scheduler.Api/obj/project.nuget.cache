@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "dgSpecHash": "5Ozme10x9uY=",
-  "success": true,
+  "dgSpecHash": "f7ixGiIVy30=",
+  "success": false,
   "projectFilePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\massini913471\\.nuget\\packages\\bouncycastle.cryptography\\2.6.2\\bouncycastle.cryptography.2.6.2.nupkg.sha512",
@@ -62,5 +62,79 @@
     "C:\\Users\\massini913471\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512",
     "C:\\Users\\massini913471\\.nuget\\packages\\webpush\\1.0.13\\webpush.1.0.13.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "filePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "filePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "filePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "filePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "filePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "filePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "filePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized).",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "filePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "targetGraphs": []
+    }
+  ]
 }

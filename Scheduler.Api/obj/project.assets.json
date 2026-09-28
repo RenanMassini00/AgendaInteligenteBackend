@@ -3134,11 +3134,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\massini913471\\Source\\Repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "projectUniqueName": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
       "projectName": "Scheduler.Api",
-      "projectPath": "C:\\Users\\massini913471\\Source\\Repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
+      "projectPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\Scheduler.Api.csproj",
       "packagesPath": "C:\\Users\\massini913471\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\massini913471\\Source\\Repos\\AgendaInteligenteBackend\\Scheduler.Api\\obj\\",
+      "outputPath": "C:\\Users\\massini913471\\source\\repos\\AgendaInteligenteBackend\\Scheduler.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -3229,6 +3229,24 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[8.0.31, 8.0.31]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[8.0.31, 8.0.31]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[8.0.31, 8.0.31]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[8.0.31, 8.0.31]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -3237,8 +3255,56 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.111/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.112/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized)."
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized)."
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized)."
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized)."
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized)."
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized)."
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized)."
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json.\r\n  Response status code does not indicate success: 401 (Unauthorized)."
+    },
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://tegmasoftware.pkgs.visualstudio.com/_packaging/desenvolvimento/nuget/v3/index.json."
+    }
+  ]
 }

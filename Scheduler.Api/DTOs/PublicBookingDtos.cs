@@ -24,6 +24,7 @@ public record PublicBookAppointmentRequest(
 );
 
 public record PublicBookingProfessionalResponse(
+    ulong ProfessionalUserId,
     string DisplayName,
     string Subtitle,
     string PublicSlug,

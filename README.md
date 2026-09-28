@@ -11,6 +11,14 @@ API de exemplo para integração com o front do Scheduler.
 - endpoints públicos para listar profissionais, serviços e horários disponíveis
 - dashboard, clientes, serviços, disponibilidade, perfil e configurações do profissional
 
+## Login no agendamento público
+
+Na página `/agendar/{slug}`, o cliente pode entrar com e-mail e senha ou criar uma conta vinculada à agenda. O formulário também continua permitindo agendamento como visitante, sem login.
+
+O frontend carrega `professionalUserId` em `GET /api/public/professionals/{slug}` e usa `POST /api/auth/login` ou `POST /api/auth/register-client`. A conta autenticada precisa ter o papel `client` e estar vinculada ao mesmo profissional da URL. Os cadastros novos armazenam senha com hash; senhas antigas em texto puro são atualizadas para hash no primeiro login válido.
+
+Ao criar uma conta, um cadastro anterior de agendamento público é reaproveitado apenas quando telefone e e-mail correspondem ao cliente daquela agenda.
+
 ## Como rodar
 
 1. Ajuste a connection string em `Scheduler.Api/appsettings.json`.

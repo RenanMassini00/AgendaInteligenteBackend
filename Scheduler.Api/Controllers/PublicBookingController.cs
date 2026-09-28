@@ -46,6 +46,7 @@ public class PublicBookingController : ControllerBase
         var branding = await GetBrandingAsync(professional.Id);
 
         var response = new PublicBookingProfessionalResponse(
+            professional.Id,
             professional.BusinessName ?? professional.FullName,
             professional.Specialty ?? "Agendamento online",
             professional.PublicSlug ?? slug,

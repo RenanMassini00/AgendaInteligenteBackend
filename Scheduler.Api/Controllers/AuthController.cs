@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
 using Scheduler.Api.Entities;
@@ -12,6 +14,7 @@ namespace Scheduler.Api.Controllers;
 [EnableRateLimiting("Auth")]
 public class AuthController : ControllerBase
 {
+    private static readonly PasswordHasher<User> PasswordHasher = new();
     private readonly AppDbContext _context;
 
     public AuthController(AppDbContext context)
@@ -27,14 +30,34 @@ public class AuthController : ControllerBase
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await _context.Users
-            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Email == normalizedEmail && x.IsActive);
 
         if (user is null)
             return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
 
-        if (!string.Equals(user.PasswordHash, request.Password, StringComparison.Ordinal))
-            return Unauthorized(new ApiMessage("Senha inválida."));
+        var needsRehash = false;
+        if (IsPasswordHash(user.PasswordHash))
+        {
+            var verification = PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+            if (verification == PasswordVerificationResult.Failed)
+                return Unauthorized(new ApiMessage("Senha inválida."));
+
+            needsRehash = verification == PasswordVerificationResult.SuccessRehashNeeded;
+        }
+        else
+        {
+            if (!string.Equals(user.PasswordHash, request.Password, StringComparison.Ordinal))
+                return Unauthorized(new ApiMessage("Senha inválida."));
+
+            needsRehash = true;
+        }
+
+        if (needsRehash)
+        {
+            user.PasswordHash = PasswordHasher.HashPassword(user, request.Password);
+            user.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+        }
 
         var normalizedRole = NormalizeRole(user.Role);
         var token = $"dev-token-{normalizedRole}-user-{user.Id}";
@@ -58,6 +81,9 @@ public class AuthController : ControllerBase
         }
 
         var email = request.Email.Trim().ToLowerInvariant();
+        if (!new EmailAddressAttribute().IsValid(email))
+            return BadRequest(new ApiMessage("Informe um e-mail válido."));
+
         var exists = await _context.Users.AnyAsync(x => x.Email == email);
 
         if (exists)
@@ -77,7 +103,7 @@ public class AuthController : ControllerBase
                 : request.BusinessName.Trim(),
             Email = email,
             Phone = request.Phone?.Trim(),
-            PasswordHash = request.Password,
+            PasswordHash = string.Empty,
             Specialty = request.Specialty?.Trim(),
             Role = "professional",
             PublicSlug = generatedSlug,
@@ -91,6 +117,7 @@ public class AuthController : ControllerBase
             UpdatedAt = DateTime.Now
         };
 
+        user.PasswordHash = PasswordHasher.HashPassword(user, request.Password);
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
@@ -129,23 +156,48 @@ public class AuthController : ControllerBase
         if (professional is null) return BadRequest(new ApiMessage("Profissional inválido."));
 
         var email = request.Email.Trim().ToLowerInvariant();
+        if (!new EmailAddressAttribute().IsValid(email))
+            return BadRequest(new ApiMessage("Informe um e-mail válido."));
+
         var exists = await _context.Users.AnyAsync(x => x.Email == email);
         if (exists) return Conflict(new ApiMessage("Já existe uma conta com esse e-mail."));
 
-        var client = new Client
-        {
-            UserId = request.ProfessionalUserId,
-            FullName = request.FullName.Trim(),
-            Email = email,
-            Phone = request.Phone.Trim(),
-            BirthDate = request.BirthDate,
-            Notes = request.Notes,
-            IsActive = true,
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
-        };
+        var normalizedPhone = NormalizePhone(request.Phone);
+        var client = (await _context.Clients
+                .Where(x => x.UserId == request.ProfessionalUserId)
+                .ToListAsync())
+            .FirstOrDefault(x =>
+                NormalizePhone(x.Phone) == normalizedPhone &&
+                string.Equals(x.Email?.Trim(), email, StringComparison.OrdinalIgnoreCase));
 
-        _context.Clients.Add(client);
+        if (client is null)
+        {
+            client = new Client
+            {
+                UserId = request.ProfessionalUserId,
+                FullName = request.FullName.Trim(),
+                Email = email,
+                Phone = request.Phone.Trim(),
+                BirthDate = request.BirthDate,
+                Notes = request.Notes,
+                IsActive = true,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+
+            _context.Clients.Add(client);
+        }
+        else
+        {
+            client.FullName = request.FullName.Trim();
+            client.Email = email;
+            client.Phone = request.Phone.Trim();
+            client.BirthDate = request.BirthDate ?? client.BirthDate;
+            client.Notes = string.IsNullOrWhiteSpace(request.Notes) ? client.Notes : request.Notes.Trim();
+            client.IsActive = true;
+            client.UpdatedAt = DateTime.Now;
+        }
+
         await _context.SaveChangesAsync();
 
         var user = new User
@@ -153,7 +205,7 @@ public class AuthController : ControllerBase
             FullName = client.FullName,
             Email = email,
             Phone = client.Phone,
-            PasswordHash = request.Password,
+            PasswordHash = string.Empty,
             Role = "client",
             ProfessionalUserId = request.ProfessionalUserId,
             ClientId = client.Id,
@@ -162,6 +214,7 @@ public class AuthController : ControllerBase
             UpdatedAt = DateTime.Now
         };
 
+        user.PasswordHash = PasswordHasher.HashPassword(user, request.Password);
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
@@ -235,5 +288,23 @@ public class AuthController : ControllerBase
 
         while (sanitized.Contains("--")) sanitized = sanitized.Replace("--", "-");
         return string.IsNullOrWhiteSpace(sanitized) ? $"agenda-{Guid.NewGuid():N}"[..14] : sanitized;
+    }
+
+    private static string NormalizePhone(string? phone)
+    {
+        return new string((phone ?? string.Empty).Where(char.IsDigit).ToArray());
+    }
+
+    private static bool IsPasswordHash(string value)
+    {
+        try
+        {
+            var bytes = Convert.FromBase64String(value);
+            return bytes.Length > 0 && bytes[0] == 1;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 }
