@@ -273,7 +273,8 @@ public class AuthController : ControllerBase
             HasCatalogModule: user.HasCatalogModule,
             ThemeMode: settings?.ThemeMode ?? "light",
             AccentColor: settings?.AccentColor ?? "blue",
-            LogoUrl: settings?.LogoUrl
+            LogoUrl: settings?.LogoUrl,
+            TeamOwnerUserId: user.TeamOwnerUserId
         );
     }
 

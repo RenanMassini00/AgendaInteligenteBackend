@@ -41,7 +41,8 @@ public record UserResponse(
     bool HasCatalogModule,
     string ThemeMode,
     string AccentColor,
-    string? LogoUrl
+    string? LogoUrl,
+    ulong? TeamOwnerUserId = null
 );
 
 public record LoginResponse(

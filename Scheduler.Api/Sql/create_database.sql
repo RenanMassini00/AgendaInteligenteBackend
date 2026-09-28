@@ -16,13 +16,17 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(30) NOT NULL DEFAULT 'professional',
     professional_user_id BIGINT UNSIGNED NULL,
     client_id BIGINT UNSIGNED NULL,
+    team_owner_user_id BIGINT UNSIGNED NULL,
     public_slug VARCHAR(160) NULL,
+    company_id BIGINT UNSIGNED NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_users_email (email),
-    UNIQUE KEY uq_users_public_slug (public_slug)
+    UNIQUE KEY uq_users_public_slug (public_slug),
+    KEY idx_users_team_owner_user_id (team_owner_user_id),
+    CONSTRAINT fk_users_team_owner FOREIGN KEY (team_owner_user_id) REFERENCES users(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS user_settings (

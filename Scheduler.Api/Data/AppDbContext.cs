@@ -241,10 +241,16 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.Property(x => x.CompanyId).HasColumnName("company_id");
+            entity.Property(x => x.TeamOwnerUserId).HasColumnName("team_owner_user_id");
 
             entity.HasOne(x => x.Company)
                 .WithMany(x => x.Users)
                 .HasForeignKey(x => x.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.TeamOwnerUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

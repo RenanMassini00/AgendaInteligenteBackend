@@ -4,12 +4,19 @@ namespace Scheduler.Api.DTOs;
 
 public record PublicBookingServiceResponse(
     ulong Id,
+    ulong ProfessionalUserId,
     string Name,
     string? Description,
     int DurationMinutes,
     string Duration,
     decimal Price,
     string PriceFormatted
+);
+
+public record PublicBookingTeamMemberResponse(
+    ulong Id,
+    string FullName,
+    string? Specialty
 );
 
 public record PublicBookAppointmentRequest(
@@ -20,7 +27,8 @@ public record PublicBookAppointmentRequest(
     [Required] DateTime AppointmentDate,
     [Required] TimeSpan StartTime,
     [Required] TimeSpan EndTime,
-    string? Notes
+    string? Notes,
+    ulong? ProfessionalUserId = null
 );
 
 public record PublicBookingProfessionalResponse(
@@ -29,6 +37,7 @@ public record PublicBookingProfessionalResponse(
     string Subtitle,
     string PublicSlug,
     List<PublicBookingServiceResponse> Services,
+    List<PublicBookingTeamMemberResponse> Professionals,
     string ThemeMode,
     string AccentColor,
     string? LogoUrl
@@ -41,7 +50,8 @@ public record PublicBookingProfessionalResponse(
 public record PublicBookingAvailableSlotsResponse(
     string Date,
     ulong ServiceId,
-    List<string> Slots
+    List<string> Slots,
+    ulong ProfessionalUserId
 );
 
 public record PublicBookingRequest(
@@ -50,7 +60,8 @@ public record PublicBookingRequest(
     ulong ServiceId,
     string Date,
     string Time,
-    string? Email = null
+    string? Email = null,
+    ulong? ProfessionalUserId = null
 );
 
 public record PublicBookingCreatedResponse(
@@ -61,7 +72,9 @@ public record PublicBookingCreatedResponse(
     string Date,
     string Time,
     string Status,
-    string Message
+    string Message,
+    ulong ProfessionalUserId,
+    string ProfessionalName
 );
 
 public record PublicBookingSuccessResponse(
@@ -80,5 +93,6 @@ public record PublicBookingSuccessResponse(
     bool ClientPushSent,
     bool ProfessionalPushSent,
     bool CalendarCreated,
-    string Message
+    string Message,
+    ulong ProfessionalUserId
 );

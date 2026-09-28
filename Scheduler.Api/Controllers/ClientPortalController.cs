@@ -66,11 +66,13 @@ public class ClientPortalController : ControllerBase
             return BadRequest(new ApiMessage("Sessão do cliente inválida."));
 
         var culture = CultureInfo.GetCultureInfo("pt-BR");
+        var professionalIds = await GetTeamProfessionalIdsAsync(user.ProfessionalUserId.Value);
         var items = await _context.Appointments
             .AsNoTracking()
             .Include(x => x.Client)
             .Include(x => x.Service)
-            .Where(x => x.UserId == user.ProfessionalUserId && x.ClientId == user.ClientId)
+            .Include(x => x.User)
+            .Where(x => professionalIds.Contains(x.UserId) && x.ClientId == user.ClientId)
             .OrderByDescending(x => x.AppointmentDate)
             .ThenBy(x => x.StartTime)
             .ToListAsync();
@@ -88,7 +90,9 @@ public class ClientPortalController : ControllerBase
             x.Status,
             x.PriceAtBooking,
             x.PriceAtBooking.ToString("C", culture),
-            x.Notes
+            x.Notes,
+            x.UserId,
+            x.User?.FullName
         )));
     }
 
@@ -102,12 +106,18 @@ public class ClientPortalController : ControllerBase
         if (!DateTime.TryParse(date, out var parsedDate))
             return BadRequest(new ApiMessage("Data inválida. Use yyyy-MM-dd."));
 
-        var service = await _context.Services.AsNoTracking().FirstOrDefaultAsync(x => x.Id == serviceId && x.UserId == user.ProfessionalUserId && x.IsActive);
+        var professionalIds = await GetTeamProfessionalIdsAsync(user.ProfessionalUserId.Value);
+        var service = await _context.Services
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x =>
+                x.Id == serviceId &&
+                professionalIds.Contains(x.UserId) &&
+                x.IsActive);
         if (service is null) return BadRequest(new ApiMessage("Serviço inválido."));
 
-        var availabilities = await _context.WeeklyAvailabilities.AsNoTracking().Where(x => x.UserId == user.ProfessionalUserId).ToListAsync();
-        var appointments = await _context.Appointments.AsNoTracking().Where(x => x.UserId == user.ProfessionalUserId && x.AppointmentDate.Date == parsedDate.Date).ToListAsync();
-        var blocked = await _context.BlockedPeriods.AsNoTracking().Where(x => x.UserId == user.ProfessionalUserId).ToListAsync();
+        var availabilities = await _context.WeeklyAvailabilities.AsNoTracking().Where(x => x.UserId == service.UserId).ToListAsync();
+        var appointments = await _context.Appointments.AsNoTracking().Where(x => x.UserId == service.UserId && x.AppointmentDate.Date == parsedDate.Date).ToListAsync();
+        var blocked = await _context.BlockedPeriods.AsNoTracking().Where(x => x.UserId == service.UserId).ToListAsync();
 
         var slots = SlotCalculator.BuildAvailableSlots(parsedDate.Date, service.DurationMinutes, availabilities, appointments, blocked)
             .Select(x => new AvailableSlotResponse(x.Start.ToString(@"hh\:mm"), x.End.ToString(@"hh\:mm")))
@@ -123,12 +133,13 @@ public class ClientPortalController : ControllerBase
         if (user is null || user.ClientId is null || user.ProfessionalUserId is null)
             return BadRequest(new ApiMessage("Sessão do cliente inválida."));
 
-        if (request.ProfessionalUserId != user.ProfessionalUserId)
+        var professionalIds = await GetTeamProfessionalIdsAsync(user.ProfessionalUserId.Value);
+        if (!professionalIds.Contains(request.ProfessionalUserId))
             return BadRequest(new ApiMessage("Profissional inválido para este cliente."));
 
         var professional = await _context.Users.FirstOrDefaultAsync(x =>
-            x.Id == user.ProfessionalUserId &&
-            x.Role == "professional" &&
+            x.Id == request.ProfessionalUserId &&
+            (x.Id == user.ProfessionalUserId || x.Role == "employee") &&
             x.IsActive);
 
         if (professional is null)
@@ -136,7 +147,7 @@ public class ClientPortalController : ControllerBase
 
         var client = await _context.Clients.FirstOrDefaultAsync(x =>
             x.Id == user.ClientId.Value &&
-            x.UserId == professional.Id &&
+            x.UserId == user.ProfessionalUserId.Value &&
             x.IsActive);
 
         if (client is null)
@@ -151,13 +162,16 @@ public class ClientPortalController : ControllerBase
         if (!TimeSpan.TryParse(request.Time, out var startTime))
             return BadRequest(new ApiMessage("Horário inválido. Use HH:mm."));
 
-        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == request.ServiceId && x.UserId == professional.Id && x.IsActive);
+        var service = await _context.Services.FirstOrDefaultAsync(x =>
+            x.Id == request.ServiceId &&
+            x.UserId == professional.Id &&
+            x.IsActive);
         if (service is null) return BadRequest(new ApiMessage("Serviço inválido."));
 
         var endTime = startTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
         var hasConflict = await _context.Appointments.AnyAsync(x =>
-            x.UserId == user.ProfessionalUserId &&
+            x.UserId == professional.Id &&
             x.AppointmentDate.Date == date.Date &&
             x.Status != "cancelled" &&
             startTime < x.EndTime &&
@@ -169,7 +183,7 @@ public class ClientPortalController : ControllerBase
 
         var appointment = new Appointment
         {
-            UserId = user.ProfessionalUserId.Value,
+            UserId = professional.Id,
             ClientId = user.ClientId.Value,
             ServiceId = request.ServiceId,
             AppointmentDate = date.Date,
@@ -227,7 +241,9 @@ public class ClientPortalController : ControllerBase
             created.Status,
             created.PriceAtBooking,
             created.PriceAtBooking.ToString("C", culture),
-            created.Notes
+            created.Notes,
+            created.UserId,
+            professional.FullName
         ));
     }
 
@@ -242,6 +258,7 @@ public class ClientPortalController : ControllerBase
         if (user?.ClientId is null || user.ProfessionalUserId is null)
             return BadRequest(new ApiMessage("Sessão do cliente inválida."));
 
+        var professionalIds = await GetTeamProfessionalIdsAsync(user.ProfessionalUserId.Value);
         var action = (request.Action ?? string.Empty).Trim().ToLowerInvariant();
         if (action is not ("accepted" or "rejected"))
             return BadRequest(new ApiMessage("Ação inválida. Use accepted ou rejected."));
@@ -249,7 +266,7 @@ public class ClientPortalController : ControllerBase
         var appointment = await _context.Appointments
             .FirstOrDefaultAsync(x =>
                 x.Id == id &&
-                x.UserId == user.ProfessionalUserId &&
+                professionalIds.Contains(x.UserId) &&
                 x.ClientId == user.ClientId.Value);
         if (appointment is null)
             return NotFound(new ApiMessage("Agendamento não encontrado."));
@@ -309,6 +326,21 @@ public class ClientPortalController : ControllerBase
             settings?.AccentColor ?? "blue",
             settings?.LogoUrl
         );
+    }
+
+    private async Task<List<ulong>> GetTeamProfessionalIdsAsync(ulong ownerUserId)
+    {
+        var employeeIds = await _context.Users
+            .AsNoTracking()
+            .Where(x =>
+                x.TeamOwnerUserId == ownerUserId &&
+                x.Role == "employee" &&
+                x.IsActive)
+            .Select(x => x.Id)
+            .ToListAsync();
+
+        employeeIds.Add(ownerUserId);
+        return employeeIds;
     }
 
     private sealed record BrandingSnapshot(string ThemeMode, string AccentColor, string? LogoUrl);

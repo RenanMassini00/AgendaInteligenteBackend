@@ -52,7 +52,8 @@ public class ProfileController : ControllerBase
             HasCatalogModule: user.HasCatalogModule,
             ThemeMode: userSetting?.ThemeMode ?? "light",
             AccentColor: userSetting?.AccentColor ?? "blue",
-            LogoUrl: userSetting?.LogoUrl
+            LogoUrl: userSetting?.LogoUrl,
+            TeamOwnerUserId: user.TeamOwnerUserId
         ));
     }
 

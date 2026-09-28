@@ -13,7 +13,9 @@ public record AppointmentResponse(
     string Status,
     decimal Price,
     string PriceFormatted,
-    string? Notes
+    string? Notes,
+    ulong? ProfessionalUserId = null,
+    string? ProfessionalName = null
 );
 
 public record AppointmentCreateRequest(

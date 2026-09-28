@@ -36,11 +36,14 @@ public class PublicBookingController : ControllerBase
         }
 
         var culture = CultureInfo.GetCultureInfo("pt-BR");
+        var professionals = await GetTeamProfessionalsAsync(professional);
+        var professionalIds = professionals.Select(x => x.Id).ToList();
 
         var services = await _context.Services
             .AsNoTracking()
-            .Where(x => x.UserId == professional.Id && x.IsActive)
+            .Where(x => professionalIds.Contains(x.UserId) && x.IsActive)
             .OrderBy(x => x.Name)
+            .ThenBy(x => x.UserId)
             .ToListAsync();
 
         var branding = await GetBrandingAsync(professional.Id);
@@ -52,12 +55,18 @@ public class PublicBookingController : ControllerBase
             professional.PublicSlug ?? slug,
             services.Select(x => new PublicBookingServiceResponse(
                 x.Id,
+                x.UserId,
                 x.Name,
                 x.Description,
                 x.DurationMinutes,
                 x.DurationMinutes < 60 ? $"{x.DurationMinutes} min" : $"{x.DurationMinutes / 60}h",
                 x.Price,
                 x.Price.ToString("C", culture)
+            )).ToList(),
+            professionals.Select(x => new PublicBookingTeamMemberResponse(
+                x.Id,
+                x.FullName,
+                x.Specialty
             )).ToList(),
             branding.ThemeMode,
             branding.AccentColor,
@@ -71,7 +80,8 @@ public class PublicBookingController : ControllerBase
     public async Task<ActionResult<PublicBookingAvailableSlotsResponse>> GetAvailableSlots(
         string slug,
         [FromQuery] ulong serviceId,
-        [FromQuery] string date)
+        [FromQuery] string date,
+        [FromQuery] ulong? professionalUserId = null)
     {
         var professional = await GetProfessionalAsync(slug);
 
@@ -80,9 +90,17 @@ public class PublicBookingController : ControllerBase
             return NotFound(new ApiMessage("Agenda não encontrada."));
         }
 
+        var professionals = await GetTeamProfessionalsAsync(professional);
+        var selectedProfessionalId = professionalUserId ?? professional.Id;
+        if (!professionals.Any(x => x.Id == selectedProfessionalId))
+            return BadRequest(new ApiMessage("Profissional inválido para esta agenda."));
+
         var service = await _context.Services
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == serviceId && x.UserId == professional.Id && x.IsActive);
+            .FirstOrDefaultAsync(x =>
+                x.Id == serviceId &&
+                x.UserId == selectedProfessionalId &&
+                x.IsActive);
 
         if (service is null)
         {
@@ -94,13 +112,14 @@ public class PublicBookingController : ControllerBase
             return BadRequest(new ApiMessage("Data inválida. Use o formato yyyy-MM-dd."));
         }
 
-        var windows = await GetAvailabilityWindowsAsync(professional.Id, targetDate.Date);
-        var slots = await GenerateAvailableSlotsAsync(professional.Id, targetDate.Date, service.DurationMinutes, windows);
+        var windows = await GetAvailabilityWindowsAsync(selectedProfessionalId, targetDate.Date);
+        var slots = await GenerateAvailableSlotsAsync(selectedProfessionalId, targetDate.Date, service.DurationMinutes, windows);
 
         return Ok(new PublicBookingAvailableSlotsResponse(
             targetDate.ToString("yyyy-MM-dd"),
             service.Id,
-            slots
+            slots,
+            selectedProfessionalId
         ));
     }
 
@@ -110,16 +129,18 @@ public class PublicBookingController : ControllerBase
         string slug,
         [FromBody] PublicBookAppointmentRequest request)
     {
-        var professional = await _context.Users
-            .FirstOrDefaultAsync(x =>
-                x.PublicSlug == slug &&
-                x.Role == "professional" &&
-                x.IsActive);
+        var owner = await GetProfessionalAsync(slug);
 
-        if (professional is null)
+        if (owner is null)
         {
             return NotFound(new ApiMessage("Profissional não encontrado."));
         }
+
+        var selectedProfessionalId = request.ProfessionalUserId ?? owner.Id;
+        var professionals = await GetTeamProfessionalsAsync(owner);
+        var professional = professionals.FirstOrDefault(x => x.Id == selectedProfessionalId);
+        if (professional is null)
+            return BadRequest(new ApiMessage("Profissional inválido para esta agenda."));
 
         var service = await _context.Services
             .FirstOrDefaultAsync(x =>
@@ -210,7 +231,7 @@ public class PublicBookingController : ControllerBase
         var normalizedPhone = NormalizePhone(request.Phone);
 
         var clients = await _context.Clients
-            .Where(x => x.UserId == professional.Id)
+            .Where(x => x.UserId == owner.Id)
             .ToListAsync();
 
         var client = clients.FirstOrDefault(x => NormalizePhone(x.Phone) == normalizedPhone);
@@ -219,7 +240,7 @@ public class PublicBookingController : ControllerBase
         {
             client = new Client
             {
-                UserId = professional.Id,
+                UserId = owner.Id,
                 FullName = request.FullName.Trim(),
                 Email = request.Email.Trim(),
                 Phone = request.Phone.Trim(),
@@ -237,7 +258,7 @@ public class PublicBookingController : ControllerBase
         }
         else
         {
-            var registeredClientEmail = await GetRegisteredClientEmailAsync(client.Id, professional.Id);
+            var registeredClientEmail = await GetRegisteredClientEmailAsync(client.Id, owner.Id);
 
             client.FullName = request.FullName.Trim();
             client.Email = string.IsNullOrWhiteSpace(registeredClientEmail)
@@ -304,7 +325,8 @@ public class PublicBookingController : ControllerBase
             automationResult.ClientPushSent,
             automationResult.ProfessionalPushSent,
             automationResult.CalendarCreated,
-            "Agendamento realizado com sucesso."
+            "Agendamento realizado com sucesso.",
+            professional.Id
         ));
     }
 
@@ -321,8 +343,17 @@ public class PublicBookingController : ControllerBase
             return NotFound(new ApiMessage("Agenda não encontrada."));
         }
 
+        var professionals = await GetTeamProfessionalsAsync(professional);
+        var selectedProfessionalId = request.ProfessionalUserId ?? professional.Id;
+        var selectedProfessional = professionals.FirstOrDefault(x => x.Id == selectedProfessionalId);
+        if (selectedProfessional is null)
+            return BadRequest(new ApiMessage("Profissional inválido para esta agenda."));
+
         var service = await _context.Services
-            .FirstOrDefaultAsync(x => x.Id == request.ServiceId && x.UserId == professional.Id && x.IsActive);
+            .FirstOrDefaultAsync(x =>
+                x.Id == request.ServiceId &&
+                x.UserId == selectedProfessional.Id &&
+                x.IsActive);
 
         if (service is null)
         {
@@ -356,7 +387,7 @@ public class PublicBookingController : ControllerBase
 
         var endTime = startTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
-        var windows = await GetAvailabilityWindowsAsync(professional.Id, targetDate.Date);
+        var windows = await GetAvailabilityWindowsAsync(selectedProfessional.Id, targetDate.Date);
         var fitsWindow = windows.Any(x => startTime >= x.Start && endTime <= x.End);
 
         if (!fitsWindow)
@@ -367,7 +398,7 @@ public class PublicBookingController : ControllerBase
         var appointments = await _context.Appointments
             .AsNoTracking()
             .Where(x =>
-                x.UserId == professional.Id &&
+                x.UserId == selectedProfessional.Id &&
                 x.AppointmentDate == targetDate.Date &&
                 x.Status != "cancelled")
             .ToListAsync();
@@ -421,7 +452,7 @@ public class PublicBookingController : ControllerBase
 
         var appointment = new Appointment
         {
-            UserId = professional.Id,
+            UserId = selectedProfessional.Id,
             ClientId = client.Id,
             ServiceId = service.Id,
             AppointmentDate = targetDate.Date,
@@ -439,10 +470,10 @@ public class PublicBookingController : ControllerBase
 
         var userSetting = await _context.UserSettings
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.UserId == professional.Id);
+            .FirstOrDefaultAsync(x => x.UserId == selectedProfessional.Id);
 
         await _bookingAutomationService.ProcessAsync(
-            professional,
+            selectedProfessional,
             userSetting,
             client,
             service,
@@ -456,8 +487,24 @@ public class PublicBookingController : ControllerBase
             targetDate.ToString("yyyy-MM-dd"),
             startTime.ToString(@"hh\:mm"),
             appointment.Status,
-            "Agendamento realizado com sucesso."
+            "Agendamento realizado com sucesso.",
+            selectedProfessional.Id,
+            selectedProfessional.FullName
         ));
+    }
+
+    private async Task<List<User>> GetTeamProfessionalsAsync(User owner)
+    {
+        var employees = await _context.Users
+            .AsNoTracking()
+            .Where(x =>
+                x.TeamOwnerUserId == owner.Id &&
+                x.Role == "employee" &&
+                x.IsActive)
+            .OrderBy(x => x.FullName)
+            .ToListAsync();
+
+        return [owner, .. employees];
     }
 
     private async Task<User?> GetProfessionalAsync(string slug)

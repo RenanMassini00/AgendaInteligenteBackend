@@ -19,6 +19,30 @@ O frontend carrega `professionalUserId` em `GET /api/public/professionals/{slug}
 
 Ao criar uma conta, um cadastro anterior de agendamento público é reaproveitado apenas quando telefone e e-mail correspondem ao cliente daquela agenda.
 
+## Equipe e agendamento por profissional
+
+Execute [`Scheduler.Api/Sql/add_professional_team.sql`](Scheduler.Api/Sql/add_professional_team.sql) uma vez no banco existente para adicionar o vínculo de funcionários com a conta da empresa.
+
+- `GET /api/professional-team/employees?ownerUserId={id}` lista os funcionários.
+- `POST /api/professional-team/employees?ownerUserId={id}` cadastra funcionário com `fullName`, `email`, `password`, `phone`, `specialty` e `timezone`.
+- `PUT /api/professional-team/employees/{employeeId}?ownerUserId={id}` atualiza cadastro; `password` pode ser omitido e `isActive` controla o acesso.
+- `DELETE /api/professional-team/employees/{employeeId}?ownerUserId={id}` inativa o funcionário, sem apagar o histórico.
+
+A conta proprietária precisa estar ativa e ter `hasAppointmentsModule=true`. Funcionários são usuários de papel `employee`, recebem acesso ao calendário próprio e ficam vinculados à conta que os cadastrou. Configure serviços e disponibilidade para cada funcionário usando o respectivo `userId`.
+
+`GET /api/public/professionals/{slug}` passa a incluir `professionals` e `professionalUserId` em cada serviço. `GET /api/public/professionals/{slug}/available-slots` aceita `professionalUserId` como query opcional. Para reservar com `POST /api/public/professionals/{slug}/appointments` ou `/book`, envie `professionalUserId` no corpo junto ao `serviceId`. O profissional selecionado deve pertencer à equipe da agenda e ser o proprietário do serviço; horários e conflitos são verificados no calendário desse funcionário. Se omitido, o endpoint conserva o comportamento antigo e usa o proprietário da agenda.
+
+**Segurança:** a API atual ainda não valida a identidade do token de sessão nos endpoints administrativos; `ownerUserId` e a verificação do módulo não substituem autorização. Antes de disponibilizar o cadastro de funcionários em produção, implemente autenticação/autorização real no backend e derive o proprietário da identidade autenticada, em vez de confiar no ID enviado pelo frontend.
+
+### Ajustes necessários no frontend
+
+1. Na tela administrativa da empresa, criar uma seção de equipe com listagem, formulário de cadastro/edição e ação para inativar funcionário. Enviar `ownerUserId` conforme o contrato atual; depois da autenticação real, removê-lo da decisão de autorização e derivar o proprietário do token validado.
+2. Ao salvar um funcionário, exigir nome, e-mail e senha inicial; permitir telefone, especialidade e fuso horário. A senha não deve ser mostrada novamente após o cadastro.
+3. Na agenda pública, carregar `professionals` e `services` de `GET /api/public/professionals/{slug}`. Permitir escolher o profissional e exibir apenas os serviços cujo `professionalUserId` corresponda à seleção.
+4. Ao buscar horários, incluir `professionalUserId` na query de `available-slots`; ao reservar, enviar o mesmo ID e o serviço selecionado no corpo.
+5. Para calendário/serviços de funcionário autenticado, usar o `user.id` como proprietário do próprio calendário; `teamOwnerUserId` identifica a empresa e não substitui o ID do funcionário.
+6. Manter o fluxo de visitante e o login do cliente já existentes; a escolha de funcionário é independente do login do cliente.
+
 ## Como rodar
 
 1. Ajuste a connection string em `Scheduler.Api/appsettings.json`.

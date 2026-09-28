@@ -61,6 +61,9 @@ public class User
     [Column("company_id")]
     public ulong? CompanyId { get; set; }
 
+    [Column("team_owner_user_id")]
+    public ulong? TeamOwnerUserId { get; set; }
+
     public Company? Company { get; set; }
 
     public ICollection<Client> Clients { get; set; } = [];
