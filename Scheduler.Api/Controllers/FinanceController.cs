@@ -1,27 +1,44 @@
 ﻿using System.Globalization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
+using Scheduler.Api.Services;
 
 namespace Scheduler.Api.Controllers;
 
 [ApiController]
 [Route("api/finance")]
+[Authorize(Roles = "professional,employee")]
 public class FinanceController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly AuthenticatedUserScope _userScope;
 
-    public FinanceController(AppDbContext context)
+    public FinanceController(AppDbContext context, AuthenticatedUserScope userScope)
     {
         _context = context;
+        _userScope = userScope;
     }
 
     [HttpGet("summary")]
     public async Task<ActionResult<FinanceSummaryResponse>> GetSummary(
-        [FromQuery] ulong userId = 1,
+        [FromQuery] ulong userId = 0,
         [FromQuery] string? month = null)
     {
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        if (await _userScope.GetBusinessOwnerAsync(user) is null)
+            return Forbid();
+
+        var professionalId = await _userScope.ResolveProfessionalIdAsync(user, userId);
+        if (professionalId is null)
+            return Forbid();
+
+        userId = professionalId.Value;
         var culture = CultureInfo.GetCultureInfo("pt-BR");
 
         DateTime targetMonth;

@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
@@ -7,6 +9,7 @@ namespace Scheduler.Api.Controllers;
 
 [ApiController]
 [Route("api/profile")]
+[Authorize(Roles = "professional,employee")]
 public class ProfileController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -17,11 +20,15 @@ public class ProfileController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<UserResponse>> Get([FromQuery] ulong userId = 1)
+    public async Task<ActionResult<UserResponse>> Get()
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!ulong.TryParse(userId, out var parsedUserId))
+            return Unauthorized(new ApiMessage("Identidade inválida."));
+
         var user = await _context.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == userId && x.IsActive);
+            .FirstOrDefaultAsync(x => x.Id == parsedUserId && x.IsActive);
 
         if (user is null)
         {
@@ -66,6 +73,7 @@ public class ProfileController : ControllerBase
             "master admin" => "master_admin",
             "master_admin" => "master_admin",
             "client" => "client",
+            "employee" => "employee",
             _ => "professional"
         };
     }

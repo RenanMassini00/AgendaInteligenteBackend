@@ -1,27 +1,42 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
+using Scheduler.Api.Services;
 using System.Globalization;
 
 namespace Scheduler.Api.Controllers;
 
 [ApiController]
 [Route("api/dashboard")]
+[Authorize(Roles = "professional,employee")]
 public class DashboardController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly AuthenticatedUserScope _userScope;
 
-    public DashboardController(AppDbContext context)
+    public DashboardController(AppDbContext context, AuthenticatedUserScope userScope)
     {
         _context = context;
+        _userScope = userScope;
     }
 
     [HttpGet("summary")]
     public async Task<ActionResult<DashboardSummaryResponse>> Summary(
-        [FromQuery] ulong userId = 1,
+        [FromQuery] ulong userId = 0,
         [FromQuery] string? date = null)
     {
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        var owner = await _userScope.GetBusinessOwnerAsync(user);
+        var professionalId = await _userScope.ResolveProfessionalIdAsync(user, userId);
+        if (owner is null || professionalId is null)
+            return Forbid();
+
+        userId = professionalId.Value;
         var culture = CultureInfo.GetCultureInfo("pt-BR");
         var targetDate = DateTime.Today;
 
@@ -40,11 +55,20 @@ public class DashboardController : ControllerBase
             .Where(x => x.Status != "cancelled")
             .Sum(x => x.PriceAtBooking);
 
-        var clientsCount = await _context.Clients
-            .CountAsync(x => x.UserId == userId && x.IsActive);
+        var clientIds = _context.Appointments
+            .Where(x => x.UserId == userId)
+            .Select(x => x.ClientId)
+            .Distinct();
+
+        var clientsQuery = _context.Clients
+            .Where(x => x.UserId == owner.Id && x.IsActive);
+        if (userId != owner.Id)
+            clientsQuery = clientsQuery.Where(x => clientIds.Contains(x.Id));
+
+        var clientsCount = await clientsQuery.CountAsync();
 
         var servicesCount = await _context.Services
-            .CountAsync(x => x.UserId == userId && x.IsActive);
+            .CountAsync(x => x.UserId == owner.Id && x.IsActive);
 
         var upcomingAppointmentsData = await _context.Appointments
             .AsNoTracking()
@@ -76,7 +100,8 @@ public class DashboardController : ControllerBase
 
         var recentClientsData = await _context.Clients
             .AsNoTracking()
-            .Where(x => x.UserId == userId && x.IsActive)
+            .Where(x => x.UserId == owner.Id && x.IsActive &&
+                (userId == owner.Id || clientIds.Contains(x.Id)))
             .OrderByDescending(x => x.CreatedAt)
             .Take(5)
             .ToListAsync();
@@ -96,7 +121,7 @@ public class DashboardController : ControllerBase
 
         var topServicesData = await _context.Services
             .AsNoTracking()
-            .Where(x => x.UserId == userId && x.IsActive)
+            .Where(x => x.UserId == owner.Id && x.IsActive)
             .OrderBy(x => x.Name)
             .Take(5)
             .ToListAsync();

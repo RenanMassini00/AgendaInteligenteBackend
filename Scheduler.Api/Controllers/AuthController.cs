@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using Scheduler.Api.Data;
@@ -18,11 +20,16 @@ public class AuthController : ControllerBase
     private static readonly PasswordHasher<User> PasswordHasher = new();
     private readonly AppDbContext _context;
     private readonly AuthTokenService _authTokenService;
+    private readonly AuthenticatedUserScope _userScope;
 
-    public AuthController(AppDbContext context, AuthTokenService authTokenService)
+    public AuthController(
+        AppDbContext context,
+        AuthTokenService authTokenService,
+        AuthenticatedUserScope userScope)
     {
         _context = context;
         _authTokenService = authTokenService;
+        _userScope = userScope;
     }
 
     [HttpPost("login")]
@@ -37,6 +44,9 @@ public class AuthController : ControllerBase
 
         if (user is null)
             return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        if (user.Role == "employee" && await _userScope.GetBusinessOwnerAsync(user) is null)
+            return Unauthorized(new ApiMessage("A conta do funcionário não está vinculada a uma empresa ativa."));
 
         var needsRehash = false;
         if (IsPasswordHash(user.PasswordHash))
@@ -233,11 +243,16 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("me")]
-    public async Task<ActionResult<UserResponse>> Me([FromQuery] ulong userId = 1)
+    [Authorize]
+    public async Task<ActionResult<UserResponse>> Me()
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!ulong.TryParse(userId, out var parsedUserId))
+            return Unauthorized(new ApiMessage("Identidade inválida."));
+
         var user = await _context.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == userId && x.IsActive);
+            .FirstOrDefaultAsync(x => x.Id == parsedUserId && x.IsActive);
 
         if (user is null) return NotFound(new ApiMessage("Usuário não encontrado."));
 
@@ -253,6 +268,7 @@ public class AuthController : ControllerBase
             "master admin" => "master_admin",
             "master_admin" => "master_admin",
             "client" => "client",
+            "employee" => "employee",
             _ => "professional"
         };
     }

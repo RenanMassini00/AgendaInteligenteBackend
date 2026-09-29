@@ -1,41 +1,58 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
 using Scheduler.Api.Entities;
 using Scheduler.Api.Services.Contracts;
 using Scheduler.Api.Services.Notifications;
+using Scheduler.Api.Services;
 using System.Globalization;
 
 namespace Scheduler.Api.Controllers;
 
 [ApiController]
 [Route("api/appointments")]
+[Authorize(Roles = "professional,employee")]
 public class AppointmentsController : ControllerBase
 {
     private static readonly string[] ValidStatuses = ["scheduled", "confirmed", "completed", "cancelled", "no_show"];
     private readonly AppDbContext _context;
     private readonly IAppointmentNotificationService _notificationService;
     private readonly IBookingAutomationService _bookingAutomationService;
+    private readonly AuthenticatedUserScope _userScope;
 
     public AppointmentsController(
         AppDbContext context,
         IAppointmentNotificationService notificationService,
-        IBookingAutomationService bookingAutomationService)
+        IBookingAutomationService bookingAutomationService,
+        AuthenticatedUserScope userScope)
     {
         _context = context;
         _notificationService = notificationService;
         _bookingAutomationService = bookingAutomationService;
+        _userScope = userScope;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<AppointmentResponse>>> GetAll([FromQuery] ulong userId = 1, [FromQuery] string? date = null)
+    public async Task<ActionResult<IEnumerable<AppointmentResponse>>> GetAll([FromQuery] ulong userId = 0, [FromQuery] string? date = null)
     {
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        if (await _userScope.GetBusinessOwnerAsync(user) is null)
+            return Forbid();
+
+        var professionalId = await _userScope.ResolveProfessionalIdAsync(user, userId);
+        if (professionalId is null)
+            return Forbid();
+
         var query = _context.Appointments
             .AsNoTracking()
             .Include(x => x.Client)
             .Include(x => x.Service)
-            .Where(x => x.UserId == userId);
+            .Where(x => x.UserId == professionalId.Value);
 
         if (!string.IsNullOrWhiteSpace(date) && DateTime.TryParse(date, out var parsedDate))
         {
@@ -53,11 +70,19 @@ public class AppointmentsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<AppointmentResponse>> GetById(ulong id)
     {
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        if (await _userScope.GetBusinessOwnerAsync(user) is null)
+            return Forbid();
+
+        var accessibleProfessionalIds = await _userScope.GetAccessibleProfessionalIdsAsync(user);
         var appointment = await _context.Appointments
             .AsNoTracking()
             .Include(x => x.Client)
             .Include(x => x.Service)
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .FirstOrDefaultAsync(x => x.Id == id && accessibleProfessionalIds.Contains(x.UserId));
 
         if (appointment is null) return NotFound(new ApiMessage("Agendamento não encontrado."));
         return Ok(ToResponse(appointment));
@@ -66,6 +91,17 @@ public class AppointmentsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<AppointmentResponse>> Create(AppointmentCreateRequest request)
     {
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        var owner = await _userScope.GetBusinessOwnerAsync(user);
+        var resolvedProfessionalId = await _userScope.ResolveProfessionalIdAsync(user, request.UserId);
+        if (owner is null || resolvedProfessionalId is null)
+            return Forbid();
+
+        var userId = resolvedProfessionalId.Value;
+
         if (!ValidStatuses.Contains(request.Status))
             return BadRequest(new ApiMessage("Status inválido."));
 
@@ -75,18 +111,16 @@ public class AppointmentsController : ControllerBase
         if (!TimeSpan.TryParse(request.Time, out var startTime))
             return BadRequest(new ApiMessage("Horário inválido. Use HH:mm."));
 
-        var userId = request.UserId == 0 ? 1UL : request.UserId;
-
-        var client = await _context.Clients.FirstOrDefaultAsync(x => x.Id == request.ClientId && x.UserId == userId && x.IsActive);
+        var client = await _context.Clients.FirstOrDefaultAsync(x => x.Id == request.ClientId && x.UserId == owner.Id && x.IsActive);
         if (client is null) return BadRequest(new ApiMessage("Cliente inválido."));
 
-        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == request.ServiceId && x.UserId == userId && x.IsActive);
+        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == request.ServiceId && x.UserId == owner.Id && x.IsActive);
         if (service is null) return BadRequest(new ApiMessage("Serviço inválido."));
 
         var professional = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive);
         if (professional is null) return BadRequest(new ApiMessage("Profissional inválido."));
 
-        var registeredClientEmail = await GetRegisteredClientEmailAsync(client.Id, userId);
+        var registeredClientEmail = await GetRegisteredClientEmailAsync(client.Id, owner.Id);
         if (!string.IsNullOrWhiteSpace(registeredClientEmail))
         {
             client.Email = registeredClientEmail.Trim();
@@ -129,7 +163,7 @@ public class AppointmentsController : ControllerBase
             AppointmentId = appointment.Id,
             PreviousStatus = null,
             NewStatus = appointment.Status,
-            ChangedByUserId = userId,
+            ChangedByUserId = user.Id,
             Note = "Agendamento criado",
             CreatedAt = DateTime.Now
         });
@@ -158,6 +192,27 @@ public class AppointmentsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<AppointmentResponse>> Update(ulong id, AppointmentUpdateRequest request)
     {
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        var owner = await _userScope.GetBusinessOwnerAsync(user);
+        if (owner is null)
+            return Forbid();
+
+        var accessibleProfessionalIds = await _userScope.GetAccessibleProfessionalIdsAsync(user);
+        var appointment = await _context.Appointments.FirstOrDefaultAsync(x =>
+            x.Id == id && accessibleProfessionalIds.Contains(x.UserId));
+        if (appointment is null)
+            return NotFound(new ApiMessage("Agendamento não encontrado."));
+
+        var requestedProfessionalId = request.UserId == 0 ? appointment.UserId : request.UserId;
+        var resolvedProfessionalId = await _userScope.ResolveProfessionalIdAsync(user, requestedProfessionalId);
+        if (resolvedProfessionalId is null)
+            return Forbid();
+
+        var userId = resolvedProfessionalId.Value;
+
         if (!ValidStatuses.Contains(request.Status))
             return BadRequest(new ApiMessage("Status inválido."));
 
@@ -167,15 +222,10 @@ public class AppointmentsController : ControllerBase
         if (!TimeSpan.TryParse(request.Time, out var startTime))
             return BadRequest(new ApiMessage("Horário inválido. Use HH:mm."));
 
-        var userId = request.UserId == 0 ? 1UL : request.UserId;
-
-        var appointment = await _context.Appointments.FirstOrDefaultAsync(x => x.Id == id);
-        if (appointment is null) return NotFound(new ApiMessage("Agendamento não encontrado."));
-
-        var client = await _context.Clients.FirstOrDefaultAsync(x => x.Id == request.ClientId && x.UserId == userId && x.IsActive);
+        var client = await _context.Clients.FirstOrDefaultAsync(x => x.Id == request.ClientId && x.UserId == owner.Id && x.IsActive);
         if (client is null) return BadRequest(new ApiMessage("Cliente inválido."));
 
-        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == request.ServiceId && x.UserId == userId && x.IsActive);
+        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == request.ServiceId && x.UserId == owner.Id && x.IsActive);
         if (service is null) return BadRequest(new ApiMessage("Serviço inválido."));
 
         var professional = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId && x.IsActive);
@@ -215,7 +265,7 @@ public class AppointmentsController : ControllerBase
             AppointmentId = appointment.Id,
             PreviousStatus = previousStatus,
             NewStatus = appointment.Status,
-            ChangedByUserId = userId,
+            ChangedByUserId = user.Id,
             Note = "Agendamento alterado",
             CreatedAt = DateTime.Now
         });
@@ -241,7 +291,16 @@ public class AppointmentsController : ControllerBase
         ulong id,
         [FromBody] AppointmentStatusUpdateRequest request)
     {
-        var appointment = await _context.Appointments.FirstOrDefaultAsync(x => x.Id == id);
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        if (await _userScope.GetBusinessOwnerAsync(user) is null)
+            return Forbid();
+
+        var accessibleProfessionalIds = await _userScope.GetAccessibleProfessionalIdsAsync(user);
+        var appointment = await _context.Appointments.FirstOrDefaultAsync(x =>
+            x.Id == id && accessibleProfessionalIds.Contains(x.UserId));
 
         if (appointment is null)
         {
@@ -265,7 +324,7 @@ public class AppointmentsController : ControllerBase
             AppointmentId = appointment.Id,
             PreviousStatus = previousStatus,
             NewStatus = normalized,
-            ChangedByUserId = appointment.UserId,
+            ChangedByUserId = user.Id,
             Note = $"Status alterado para {normalized}",
             CreatedAt = DateTime.Now
         });
@@ -294,7 +353,16 @@ public class AppointmentsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult<ApiMessage>> Cancel(ulong id)
     {
-        var appointment = await _context.Appointments.FirstOrDefaultAsync(x => x.Id == id);
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        if (await _userScope.GetBusinessOwnerAsync(user) is null)
+            return Forbid();
+
+        var accessibleProfessionalIds = await _userScope.GetAccessibleProfessionalIdsAsync(user);
+        var appointment = await _context.Appointments.FirstOrDefaultAsync(x =>
+            x.Id == id && accessibleProfessionalIds.Contains(x.UserId));
         if (appointment is null) return NotFound(new ApiMessage("Agendamento não encontrado."));
 
         var previousStatus = appointment.Status;
@@ -307,7 +375,7 @@ public class AppointmentsController : ControllerBase
             AppointmentId = appointment.Id,
             PreviousStatus = previousStatus,
             NewStatus = "cancelled",
-            ChangedByUserId = appointment.UserId,
+            ChangedByUserId = user.Id,
             Note = appointment.CancelledReason,
             CreatedAt = DateTime.Now
         });

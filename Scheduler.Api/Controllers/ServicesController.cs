@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
@@ -9,21 +10,33 @@ namespace Scheduler.Api.Controllers;
 
 [ApiController]
 [Route("api/services")]
+[Authorize(Roles = "professional,employee")]
 public class ServicesController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly AuthenticatedUserScope _userScope;
 
-    public ServicesController(AppDbContext context)
+    public ServicesController(AppDbContext context, AuthenticatedUserScope userScope)
     {
         _context = context;
+        _userScope = userScope;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ServiceResponse>>> GetAll([FromQuery] ulong userId = 1)
+    public async Task<ActionResult<IEnumerable<ServiceResponse>>> GetAll([FromQuery] ulong userId = 0)
     {
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        var owner = await _userScope.GetBusinessOwnerAsync(user);
+        var professionalId = await _userScope.ResolveProfessionalIdAsync(user, userId);
+        if (owner is null || professionalId is null)
+            return Forbid();
+
         var items = await _context.Services
             .AsNoTracking()
-            .Where(x => x.UserId == userId && x.IsActive)
+            .Where(x => x.UserId == owner.Id && x.IsActive)
             .OrderBy(x => x.Name)
             .ToListAsync();
 
@@ -33,12 +46,22 @@ public class ServicesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponse>> GetById(ulong id)
     {
-        var service = await _context.Services.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        var owner = await _userScope.GetBusinessOwnerAsync(user);
+        if (owner is null)
+            return Forbid();
+
+        var service = await _context.Services.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id && x.UserId == owner.Id && x.IsActive);
         if (service is null) return NotFound(new ApiMessage("Serviço não encontrado."));
         return Ok(ToResponse(service));
     }
 
     [HttpPost]
+    [Authorize(Roles = "professional")]
     public async Task<ActionResult<ServiceResponse>> Create(ServiceCreateRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
@@ -47,9 +70,13 @@ public class ServicesController : ControllerBase
         if (request.DurationMinutes <= 0)
             return BadRequest(new ApiMessage("Duração deve ser maior que zero."));
 
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
         var service = new Service
         {
-            UserId = request.UserId == 0 ? 1 : request.UserId,
+            UserId = user.Id,
             Name = request.Name.Trim(),
             Description = request.Description,
             DurationMinutes = request.DurationMinutes,
@@ -67,9 +94,14 @@ public class ServicesController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "professional")]
     public async Task<ActionResult<ServiceResponse>> Update(ulong id, ServiceUpdateRequest request)
     {
-        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == id);
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == id && x.UserId == user.Id);
         if (service is null) return NotFound(new ApiMessage("Serviço não encontrado."));
 
         if (request.DurationMinutes <= 0)
@@ -88,9 +120,14 @@ public class ServicesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "professional")]
     public async Task<ActionResult<ApiMessage>> Delete(ulong id)
     {
-        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == id);
+        var user = await _userScope.GetCurrentUserAsync(User);
+        if (user is null)
+            return Unauthorized(new ApiMessage("Usuário não encontrado ou inativo."));
+
+        var service = await _context.Services.FirstOrDefaultAsync(x => x.Id == id && x.UserId == user.Id);
         if (service is null) return NotFound(new ApiMessage("Serviço não encontrado."));
 
         service.IsActive = false;

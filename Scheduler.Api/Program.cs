@@ -22,6 +22,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton(new AuthTokenService(builder.Configuration));
+builder.Services.AddScoped<AuthenticatedUserScope>();
 builder.Services
     .AddAuthentication("Bearer")
     .AddScheme<AuthenticationSchemeOptions, BearerTokenHandler>("Bearer", _ => { });
