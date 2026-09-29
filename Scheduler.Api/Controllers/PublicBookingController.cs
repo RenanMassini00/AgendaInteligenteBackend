@@ -37,11 +37,20 @@ public class PublicBookingController : ControllerBase
 
         var culture = CultureInfo.GetCultureInfo("pt-BR");
         var professionals = await GetTeamProfessionalsAsync(professional);
-        var professionalIds = professionals.Select(x => x.Id).ToList();
+        var employeeIds = professionals
+            .Where(x => x.Id != professional.Id)
+            .Select(x => x.Id)
+            .ToList();
 
-        var services = await _context.Services
+        var servicesQuery = _context.Services
             .AsNoTracking()
-            .Where(x => professionalIds.Contains(x.UserId) && x.IsActive)
+            .Where(x => x.IsActive);
+
+        servicesQuery = employeeIds.Count == 0
+            ? servicesQuery.Where(x => x.UserId == professional.Id)
+            : servicesQuery.Where(x => x.UserId == professional.Id || employeeIds.Contains(x.UserId));
+
+        var services = await servicesQuery
             .OrderBy(x => x.Name)
             .ThenBy(x => x.UserId)
             .ToListAsync();
@@ -504,7 +513,9 @@ public class PublicBookingController : ControllerBase
             .OrderBy(x => x.FullName)
             .ToListAsync();
 
-        return [owner, .. employees];
+        return employees.Count == 0
+            ? [owner]
+            : [owner, .. employees];
     }
 
     private async Task<User?> GetProfessionalAsync(string slug)
