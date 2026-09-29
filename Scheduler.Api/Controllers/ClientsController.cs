@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
 using Scheduler.Api.Entities;
+using Scheduler.Api.Services;
 
 namespace Scheduler.Api.Controllers;
 
