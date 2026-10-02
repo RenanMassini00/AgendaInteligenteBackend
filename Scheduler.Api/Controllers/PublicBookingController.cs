@@ -55,6 +55,14 @@ public class PublicBookingController : ControllerBase
             .ThenBy(x => x.UserId)
             .ToListAsync();
 
+        var teamMembers = employeeIds.Count == 0
+            ? new List<PublicBookingTeamMemberResponse>()
+            : professionals.Select(x => new PublicBookingTeamMemberResponse(
+                x.Id,
+                x.FullName,
+                x.Specialty
+            )).ToList();
+
         var branding = await GetBrandingAsync(professional.Id);
 
         var response = new PublicBookingProfessionalResponse(
@@ -72,11 +80,7 @@ public class PublicBookingController : ControllerBase
                 x.Price,
                 x.Price.ToString("C", culture)
             )).ToList(),
-            professionals.Select(x => new PublicBookingTeamMemberResponse(
-                x.Id,
-                x.FullName,
-                x.Specialty
-            )).ToList(),
+            teamMembers,
             branding.ThemeMode,
             branding.AccentColor,
             branding.LogoUrl
