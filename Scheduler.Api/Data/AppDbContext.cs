@@ -16,6 +16,9 @@ public class AppDbContext : DbContext
     public DbSet<WeeklyAvailability> WeeklyAvailabilities => Set<WeeklyAvailability>();
     public DbSet<BlockedPeriod> BlockedPeriods => Set<BlockedPeriod>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<AppointmentPayment> AppointmentPayments => Set<AppointmentPayment>();
+    public DbSet<MercadoPagoAccount> MercadoPagoAccounts => Set<MercadoPagoAccount>();
+    public DbSet<MercadoPagoOAuthState> MercadoPagoOAuthStates => Set<MercadoPagoOAuthState>();
     public DbSet<AppointmentStatusHistory> AppointmentStatusHistory => Set<AppointmentStatusHistory>();
     public DbSet<AvailabilityDate> AvailabilityDates => Set<AvailabilityDate>();
     public DbSet<Company> Companies => Set<Company>();
@@ -141,6 +144,59 @@ public class AppDbContext : DbContext
                 .WithMany(e => e.Appointments)
                 .HasForeignKey(e => e.ServiceId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AppointmentPayment>(entity =>
+        {
+            entity.HasIndex(x => x.AppointmentId)
+                .IsUnique()
+                .HasDatabaseName("uq_appointment_payments_appointment_id");
+            entity.HasIndex(x => x.PublicReference)
+                .IsUnique()
+                .HasDatabaseName("uq_appointment_payments_public_reference");
+            entity.HasIndex(x => x.ProviderPaymentId)
+                .IsUnique()
+                .HasDatabaseName("uq_appointment_payments_provider_payment_id");
+            entity.Property(x => x.Amount).HasPrecision(10, 2);
+            entity.Property(x => x.PublicReference).HasColumnType("char(36)");
+            entity.Property(x => x.Status).HasMaxLength(30).IsRequired();
+            entity.Property(x => x.ProviderPaymentId).HasMaxLength(40);
+            entity.Property(x => x.QrCode).HasColumnType("longtext");
+            entity.Property(x => x.QrCodeBase64).HasColumnType("longtext");
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.AccountOwnerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Appointment>()
+                .WithOne()
+                .HasForeignKey<AppointmentPayment>(x => x.AppointmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MercadoPagoAccount>(entity =>
+        {
+            entity.HasKey(x => x.UserId);
+            entity.Property(x => x.MercadoPagoUserId).HasMaxLength(32).IsRequired();
+            entity.Property(x => x.AccessTokenEncrypted).HasColumnType("longtext").IsRequired();
+            entity.Property(x => x.RefreshTokenEncrypted).HasColumnType("longtext").IsRequired();
+            entity.HasOne<User>()
+                .WithOne()
+                .HasForeignKey<MercadoPagoAccount>(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MercadoPagoOAuthState>(entity =>
+        {
+            entity.HasIndex(x => x.StateHash)
+                .IsUnique()
+                .HasDatabaseName("uq_mercado_pago_oauth_states_hash");
+            entity.HasIndex(x => x.ExpiresAt)
+                .HasDatabaseName("idx_mercado_pago_oauth_states_expires_at");
+            entity.Property(x => x.StateHash).HasMaxLength(64).IsRequired();
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AppointmentStatusHistory>(entity =>

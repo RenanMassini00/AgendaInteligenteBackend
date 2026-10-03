@@ -79,6 +79,7 @@ builder.Services.Configure<ZApiOptions>(builder.Configuration.GetSection("ZApi")
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
 builder.Services.Configure<GoogleCalendarOptions>(builder.Configuration.GetSection("GoogleCalendar"));
 builder.Services.Configure<WebPushOptions>(builder.Configuration.GetSection("WebPush"));
+builder.Services.Configure<MercadoPagoOptions>(builder.Configuration.GetSection("MercadoPago"));
 
 builder.Services.AddCors(options =>
 {
@@ -126,6 +127,12 @@ builder.Services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
 builder.Services.AddScoped<IPushNotificationService, WebPushNotificationService>();
 builder.Services.AddScoped<IBookingAutomationService, BookingAutomationService>();
 builder.Services.AddScoped<IInAppNotificationService, InAppNotificationService>();
+builder.Services.AddScoped<IAppointmentDepositService, AppointmentDepositService>();
+builder.Services.AddHttpClient<IMercadoPagoService, MercadoPagoService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.mercadopago.com/");
+});
+builder.Services.AddHostedService<AppointmentPaymentExpirationService>();
 
 var app = builder.Build();
 

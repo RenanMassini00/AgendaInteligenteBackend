@@ -15,7 +15,13 @@ public record AppointmentResponse(
     string PriceFormatted,
     string? Notes,
     ulong? ProfessionalUserId = null,
-    string? ProfessionalName = null
+    string? ProfessionalName = null,
+    string? PaymentStatus = null,
+    decimal? DepositAmount = null,
+    string? PixQrCode = null,
+    string? PixQrCodeBase64 = null,
+    string? PaymentReference = null,
+    DateTime? PaymentExpiresAt = null
 );
 
 public record AppointmentCreateRequest(

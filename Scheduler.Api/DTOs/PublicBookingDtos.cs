@@ -74,7 +74,13 @@ public record PublicBookingCreatedResponse(
     string Status,
     string Message,
     ulong ProfessionalUserId,
-    string ProfessionalName
+    string ProfessionalName,
+    string PaymentStatus,
+    decimal DepositAmount,
+    string? PixQrCode,
+    string? PixQrCodeBase64,
+    string PaymentReference,
+    DateTime PaymentExpiresAt
 );
 
 public record PublicBookingSuccessResponse(
@@ -94,5 +100,18 @@ public record PublicBookingSuccessResponse(
     bool ProfessionalPushSent,
     bool CalendarCreated,
     string Message,
-    ulong ProfessionalUserId
+    ulong ProfessionalUserId,
+    string PaymentStatus,
+    decimal DepositAmount,
+    string? PixQrCode,
+    string? PixQrCodeBase64,
+    string PaymentReference,
+    DateTime PaymentExpiresAt
+);
+
+public record PublicPaymentStatusResponse(
+    string Status,
+    string AppointmentStatus,
+    decimal DepositAmount,
+    DateTime ExpiresAt
 );

@@ -245,6 +245,14 @@ public class AppointmentsController : ControllerBase
         if (hasConflict)
             return Conflict(new ApiMessage("Já existe um agendamento nesse intervalo de horário."));
 
+        if (request.Status == "confirmed" &&
+            await _context.AppointmentPayments.AnyAsync(x =>
+                x.AppointmentId == appointment.Id &&
+                x.Status != "approved"))
+        {
+            return Conflict(new ApiMessage("O sinal precisa ser aprovado pelo Mercado Pago antes de confirmar este agendamento."));
+        }
+
         var previousStatus = appointment.Status;
 
         appointment.UserId = userId;
@@ -257,6 +265,17 @@ public class AppointmentsController : ControllerBase
         appointment.PriceAtBooking = service.Price;
         appointment.Notes = request.Notes;
         appointment.UpdatedAt = DateTime.Now;
+
+        if (request.Status == "cancelled")
+        {
+            var pendingPayment = await _context.AppointmentPayments
+                .FirstOrDefaultAsync(x => x.AppointmentId == appointment.Id && x.Status == "pending");
+            if (pendingPayment is not null)
+            {
+                pendingPayment.Status = "cancelled";
+                pendingPayment.UpdatedAt = DateTime.UtcNow;
+            }
+        }
 
         await _context.SaveChangesAsync();
 
@@ -315,9 +334,28 @@ public class AppointmentsController : ControllerBase
             return BadRequest(new ApiMessage("Status inválido."));
         }
 
+        if (normalized == "confirmed" &&
+            await _context.AppointmentPayments.AnyAsync(x =>
+                x.AppointmentId == appointment.Id &&
+                x.Status != "approved"))
+        {
+            return Conflict(new ApiMessage("O sinal precisa ser aprovado pelo Mercado Pago antes de confirmar este agendamento."));
+        }
+
         var previousStatus = appointment.Status;
         appointment.Status = normalized;
         appointment.UpdatedAt = DateTime.Now;
+
+        if (normalized == "cancelled")
+        {
+            var pendingPayment = await _context.AppointmentPayments
+                .FirstOrDefaultAsync(x => x.AppointmentId == appointment.Id && x.Status == "pending");
+            if (pendingPayment is not null)
+            {
+                pendingPayment.Status = "cancelled";
+                pendingPayment.UpdatedAt = DateTime.UtcNow;
+            }
+        }
 
         _context.AppointmentStatusHistory.Add(new AppointmentStatusHistory
         {

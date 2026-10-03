@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
@@ -14,20 +15,23 @@ namespace Scheduler.Api.Controllers;
 public class ClientPortalController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly IBookingAutomationService _bookingAutomationService;
     private readonly IInAppNotificationService _inAppNotificationService;
     private readonly IPushNotificationService _pushNotificationService;
+    private readonly IMercadoPagoService _mercadoPagoService;
+    private readonly IAppointmentDepositService _appointmentDepositService;
 
     public ClientPortalController(
         AppDbContext context,
-        IBookingAutomationService bookingAutomationService,
         IInAppNotificationService inAppNotificationService,
-        IPushNotificationService pushNotificationService)
+        IPushNotificationService pushNotificationService,
+        IMercadoPagoService mercadoPagoService,
+        IAppointmentDepositService appointmentDepositService)
     {
         _context = context;
-        _bookingAutomationService = bookingAutomationService;
         _inAppNotificationService = inAppNotificationService;
         _pushNotificationService = pushNotificationService;
+        _mercadoPagoService = mercadoPagoService;
+        _appointmentDepositService = appointmentDepositService;
     }
 
     [HttpGet("me")]
@@ -127,6 +131,7 @@ public class ClientPortalController : ControllerBase
     }
 
     [HttpPost("appointments")]
+    [EnableRateLimiting("PublicBooking")]
     public async Task<ActionResult<AppointmentResponse>> CreateAppointment([FromQuery] ulong userId, ClientPortalAppointmentCreateRequest request)
     {
         var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId && x.Role == "client" && x.IsActive);
@@ -168,6 +173,15 @@ public class ClientPortalController : ControllerBase
             x.IsActive);
         if (service is null) return BadRequest(new ApiMessage("Serviço inválido."));
 
+        if (!_mercadoPagoService.IsConfigured)
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiMessage("O pagamento via Pix ainda não está configurado."));
+        if (!await _mercadoPagoService.HasConnectedAccountAsync(user.ProfessionalUserId.Value, HttpContext.RequestAborted))
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiMessage("Esta agenda ainda não conectou uma conta do Mercado Pago."));
+
+        var depositAmount = _appointmentDepositService.CalculateDeposit(service.Price);
+        if (depositAmount < 0.50m)
+            return BadRequest(new ApiMessage("O sinal do serviço precisa ser de pelo menos R$ 0,50."));
+
         var endTime = startTime.Add(TimeSpan.FromMinutes(service.DurationMinutes));
 
         var hasConflict = await _context.Appointments.AnyAsync(x =>
@@ -189,7 +203,7 @@ public class ClientPortalController : ControllerBase
             AppointmentDate = date.Date,
             StartTime = startTime,
             EndTime = endTime,
-            Status = "scheduled",
+            Status = "pending_payment",
             PriceAtBooking = service.Price,
             Notes = request.Notes,
             CreatedAt = DateTime.Now,
@@ -205,21 +219,19 @@ public class ClientPortalController : ControllerBase
             PreviousStatus = null,
             NewStatus = appointment.Status,
             ChangedByUserId = user.Id,
-            Note = "Agendamento criado pelo cliente",
+            Note = "Reserva criada pelo cliente aguardando pagamento do sinal.",
             CreatedAt = DateTime.Now
         });
         await _context.SaveChangesAsync();
 
-        var userSetting = await _context.UserSettings
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.UserId == professional.Id);
-
-        await _bookingAutomationService.ProcessAsync(
-            professional,
-            userSetting,
-            client,
+        var payment = await _appointmentDepositService.CreateAsync(
+            user.ProfessionalUserId.Value,
+            appointment,
             service,
-            appointment);
+            user.Email,
+            HttpContext.RequestAborted);
+        if (payment is null)
+            return StatusCode(StatusCodes.Status502BadGateway, new ApiMessage("Não foi possível gerar o pagamento Pix. Tente novamente."));
 
         var created = await _context.Appointments
             .AsNoTracking()
@@ -243,7 +255,13 @@ public class ClientPortalController : ControllerBase
             created.PriceAtBooking.ToString("C", culture),
             created.Notes,
             created.UserId,
-            professional.FullName
+            professional.FullName,
+            payment.Status,
+            payment.Amount,
+            payment.QrCode,
+            payment.QrCodeBase64,
+            payment.PublicReference.ToString(),
+            payment.ExpiresAt
         ));
     }
 
@@ -272,6 +290,8 @@ public class ClientPortalController : ControllerBase
             return NotFound(new ApiMessage("Agendamento não encontrado."));
         if (appointment.Status is "cancelled" or "completed")
             return BadRequest(new ApiMessage("Este agendamento não pode mais receber aceite."));
+        if (action == "accepted" && appointment.Status == "pending_payment")
+            return Conflict(new ApiMessage("Pague o sinal para confirmar este agendamento."));
 
         var professional = await _context.Users
             .FirstAsync(x => x.Id == appointment.UserId && x.IsActive);
@@ -284,6 +304,17 @@ public class ClientPortalController : ControllerBase
         appointment.Status = action == "accepted" ? "confirmed" : "cancelled";
         appointment.CancelledReason = action == "rejected" ? "Recusado pelo cliente" : null;
         appointment.UpdatedAt = DateTime.Now;
+        if (action == "rejected")
+        {
+            var pendingPayment = await _context.AppointmentPayments
+                .FirstOrDefaultAsync(x => x.AppointmentId == appointment.Id && x.Status == "pending");
+            if (pendingPayment is not null)
+            {
+                pendingPayment.Status = "cancelled";
+                pendingPayment.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
         _context.AppointmentStatusHistory.Add(new AppointmentStatusHistory
         {
             AppointmentId = appointment.Id,

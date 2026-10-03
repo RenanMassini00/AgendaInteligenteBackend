@@ -15,14 +15,17 @@ namespace Scheduler.Api.Controllers;
 public class PublicBookingController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly IBookingAutomationService _bookingAutomationService;
+    private readonly IMercadoPagoService _mercadoPagoService;
+    private readonly IAppointmentDepositService _appointmentDepositService;
 
     public PublicBookingController(
         AppDbContext context,
-        IBookingAutomationService bookingAutomationService)
+        IMercadoPagoService mercadoPagoService,
+        IAppointmentDepositService appointmentDepositService)
     {
         _context = context;
-        _bookingAutomationService = bookingAutomationService;
+        _mercadoPagoService = mercadoPagoService;
+        _appointmentDepositService = appointmentDepositService;
     }
 
     [HttpGet("{slug}")]
@@ -166,6 +169,11 @@ public class PublicBookingController : ControllerBase
             return NotFound(new ApiMessage("Serviço não encontrado."));
         }
 
+        if (!_mercadoPagoService.IsConfigured)
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiMessage("O pagamento via Pix ainda não está configurado."));
+        if (!await _mercadoPagoService.HasConnectedAccountAsync(owner.Id, HttpContext.RequestAborted))
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiMessage("Esta agenda ainda não conectou uma conta do Mercado Pago."));
+
         if (string.IsNullOrWhiteSpace(request.FullName))
         {
             return BadRequest(new ApiMessage("Informe o nome do cliente."));
@@ -195,6 +203,10 @@ public class PublicBookingController : ControllerBase
         {
             return BadRequest(new ApiMessage("Informe um e-mail válido."));
         }
+
+        var depositAmount = _appointmentDepositService.CalculateDeposit(service.Price);
+        if (depositAmount < 0.50m)
+            return BadRequest(new ApiMessage("O sinal do serviço precisa ser de pelo menos R$ 0,50."));
 
         var targetDate = request.AppointmentDate.Date;
         var startTime = request.StartTime;
@@ -298,7 +310,7 @@ public class PublicBookingController : ControllerBase
             AppointmentDate = targetDate,
             StartTime = startTime,
             EndTime = endTime,
-            Status = "scheduled",
+            Status = "pending_payment",
             PriceAtBooking = service.Price,
             Notes = string.IsNullOrWhiteSpace(request.Notes)
                 ? "Agendado via página pública."
@@ -310,17 +322,14 @@ public class PublicBookingController : ControllerBase
         _context.Appointments.Add(appointment);
         await _context.SaveChangesAsync();
 
-        var userSetting = await _context.UserSettings
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.UserId == professional.Id);
-
-        var automationResult = await _bookingAutomationService.ProcessAsync(
-            professional,
-            userSetting,
-            client,
+        var payment = await _appointmentDepositService.CreateAsync(
+            owner.Id,
+            appointment,
             service,
-            appointment
-        );
+            request.Email.Trim(),
+            HttpContext.RequestAborted);
+        if (payment is null)
+            return StatusCode(StatusCodes.Status502BadGateway, new ApiMessage("Não foi possível gerar o pagamento Pix. Tente novamente."));
 
         return Ok(new PublicBookingSuccessResponse(
             appointment.Id,
@@ -331,15 +340,21 @@ public class PublicBookingController : ControllerBase
             appointment.EndTime.ToString(@"hh\:mm"),
             professional.FullName,
             professional.BusinessName,
-            automationResult.ClientEmailSent,
-            automationResult.ProfessionalEmailSent,
-            automationResult.ClientWhatsAppSent,
-            automationResult.ProfessionalWhatsAppSent,
-            automationResult.ClientPushSent,
-            automationResult.ProfessionalPushSent,
-            automationResult.CalendarCreated,
-            "Agendamento realizado com sucesso.",
-            professional.Id
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            "Agendamento reservado. Pague o sinal via Pix para confirmar.",
+            professional.Id,
+            payment.Status,
+            payment.Amount,
+            payment.QrCode,
+            payment.QrCodeBase64,
+            payment.PublicReference.ToString(),
+            payment.ExpiresAt
         ));
     }
 
@@ -373,6 +388,11 @@ public class PublicBookingController : ControllerBase
             return NotFound(new ApiMessage("Serviço não encontrado."));
         }
 
+        if (!_mercadoPagoService.IsConfigured)
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiMessage("O pagamento via Pix ainda não está configurado."));
+        if (!await _mercadoPagoService.HasConnectedAccountAsync(professional.Id, HttpContext.RequestAborted))
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiMessage("Esta agenda ainda não conectou uma conta do Mercado Pago."));
+
         if (string.IsNullOrWhiteSpace(request.FullName))
         {
             return BadRequest(new ApiMessage("Informe o nome do cliente."));
@@ -387,6 +407,13 @@ public class PublicBookingController : ControllerBase
         {
             return BadRequest(new ApiMessage("Informe um e-mail válido."));
         }
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return BadRequest(new ApiMessage("Informe o e-mail do cliente para gerar o Pix."));
+
+        var depositAmount = _appointmentDepositService.CalculateDeposit(service.Price);
+        if (depositAmount < 0.50m)
+            return BadRequest(new ApiMessage("O sinal do serviço precisa ser de pelo menos R$ 0,50."));
 
         if (!DateTime.TryParseExact(request.Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var targetDate))
         {
@@ -437,7 +464,7 @@ public class PublicBookingController : ControllerBase
             {
                 UserId = professional.Id,
                 FullName = request.FullName.Trim(),
-                Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
+                Email = request.Email.Trim(),
                 Phone = request.Phone.Trim(),
                 BirthDate = null,
                 Notes = "Criado automaticamente via agendamento público.",
@@ -455,7 +482,7 @@ public class PublicBookingController : ControllerBase
 
             client.FullName = request.FullName.Trim();
             client.Email = string.IsNullOrWhiteSpace(registeredClientEmail)
-                ? string.IsNullOrWhiteSpace(request.Email) ? client.Email : request.Email.Trim()
+                ? request.Email.Trim()
                 : registeredClientEmail.Trim();
             client.Phone = request.Phone.Trim();
             client.IsActive = true;
@@ -471,7 +498,7 @@ public class PublicBookingController : ControllerBase
             AppointmentDate = targetDate.Date,
             StartTime = startTime,
             EndTime = endTime,
-            Status = "scheduled",
+            Status = "pending_payment",
             PriceAtBooking = service.Price,
             Notes = "Agendado via página pública.",
             CreatedAt = DateTime.Now,
@@ -481,16 +508,14 @@ public class PublicBookingController : ControllerBase
         _context.Appointments.Add(appointment);
         await _context.SaveChangesAsync();
 
-        var userSetting = await _context.UserSettings
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.UserId == selectedProfessional.Id);
-
-        await _bookingAutomationService.ProcessAsync(
-            selectedProfessional,
-            userSetting,
-            client,
+        var payment = await _appointmentDepositService.CreateAsync(
+            professional.Id,
+            appointment,
             service,
-            appointment);
+            request.Email.Trim(),
+            HttpContext.RequestAborted);
+        if (payment is null)
+            return StatusCode(StatusCodes.Status502BadGateway, new ApiMessage("Não foi possível gerar o pagamento Pix. Tente novamente."));
 
         return Ok(new PublicBookingCreatedResponse(
             appointment.Id,
@@ -500,9 +525,15 @@ public class PublicBookingController : ControllerBase
             targetDate.ToString("yyyy-MM-dd"),
             startTime.ToString(@"hh\:mm"),
             appointment.Status,
-            "Agendamento realizado com sucesso.",
+            "Agendamento reservado. Pague o sinal via Pix para confirmar.",
             selectedProfessional.Id,
-            selectedProfessional.FullName
+            selectedProfessional.FullName,
+            payment.Status,
+            payment.Amount,
+            payment.QrCode,
+            payment.QrCodeBase64,
+            payment.PublicReference.ToString(),
+            payment.ExpiresAt
         ));
     }
 
