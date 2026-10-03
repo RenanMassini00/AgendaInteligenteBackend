@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Scheduler.Api.Data;
 using Scheduler.Api.DTOs;
+using Scheduler.Api.Entities;
 using Scheduler.Api.Options;
 using Scheduler.Api.Services.Contracts;
 
